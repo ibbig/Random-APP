@@ -7,87 +7,86 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0f0e17; color: #f5f0e8; font-family: Georgia, serif; font-size: 14px; }
-header { background: #1a1828; border-bottom: 1px solid #2e2b4a; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+header { background: #1a1828; border-bottom: 1px solid #2e2b4a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
 .eyebrow { font-size: 10px; letter-spacing: 0.2em; color: #7a6430; text-transform: uppercase; margin-bottom: 1px; }
-h1 { font-size: 19px; font-weight: normal; }
-#listenBtn { background: rgba(201,168,76,0.13); border: 1px solid #c9a84c; color: #c9a84c; border-radius: 4px; padding: 7px 18px; font-family: Georgia, serif; font-size: 13px; cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s; white-space: nowrap; }
+h1 { font-size: 18px; font-weight: normal; }
+#listenBtn { background: rgba(201,168,76,0.13); border: 1px solid #c9a84c; color: #c9a84c; border-radius: 4px; padding: 6px 16px; font-family: Georgia, serif; font-size: 12px; cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s; white-space: nowrap; }
 #listenBtn.active { background: rgba(196,96,122,0.13); border-color: #c4607a; color: #c4607a; }
-#error { background: rgba(196,96,122,0.13); border-bottom: 1px solid #c4607a; padding: 9px 20px; font-size: 12px; color: #c4607a; display: none; }
-
-/* Tabs */
+#error { background: rgba(196,96,122,0.13); border-bottom: 1px solid #c4607a; padding: 8px 16px; font-size: 12px; color: #c4607a; display: none; }
 .tabs { display: flex; background: #1a1828; border-bottom: 1px solid #2e2b4a; }
-.tab { flex: 1; padding: 10px 6px; text-align: center; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9488; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab { flex: 1; padding: 9px 4px; text-align: center; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9488; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
 .tab.active { color: #c9a84c; border-bottom-color: #c9a84c; }
-.tab-panel { display: none; padding: 12px 16px 16px; }
+.tab-panel { display: none; padding: 12px 14px 14px; }
 .tab-panel.active { display: block; }
-
-/* Cards */
-.card { background: #1a1828; border: 1px solid #2e2b4a; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; }
+.card { background: #1a1828; border: 1px solid #2e2b4a; border-radius: 6px; padding: 11px 13px; margin-bottom: 9px; }
 .card-label { font-size: 10px; letter-spacing: 0.18em; color: #9a9488; text-transform: uppercase; margin-bottom: 6px; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.big { font-size: 28px; line-height: 1; font-weight: normal; font-family: monospace; }
-.med { font-size: 22px; line-height: 1; font-family: monospace; }
-.sub { font-size: 11px; color: #9a9488; margin-top: 3px; }
-.hint { font-size: 11px; color: #9a9488; margin-top: 6px; line-height: 1.4; }
-.bar-bg { height: 7px; background: #242236; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 9px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-bottom: 9px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 7px; margin-bottom: 9px; }
+.big { font-size: 26px; line-height: 1; font-weight: normal; font-family: monospace; }
+.med { font-size: 20px; line-height: 1; font-family: monospace; }
+.sub { font-size: 10px; color: #9a9488; margin-top: 3px; }
+.hint { font-size: 10px; color: #9a9488; margin-top: 5px; line-height: 1.4; }
+.ref { font-size: 9px; color: #7a6430; margin-top: 3px; font-style: italic; }
+.bar-bg { height: 6px; background: #242236; border-radius: 4px; overflow: hidden; margin: 5px 0 3px; }
 .bar-fill { height: 100%; border-radius: 4px; transition: width 0.2s; }
-
-/* Health gauge */
-.gauge-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.gauge-name { font-size: 11px; color: #9a9488; width: 90px; flex-shrink: 0; }
-.gauge-bar { flex: 1; height: 6px; background: #242236; border-radius: 3px; overflow: hidden; }
+.gauge-row { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+.gauge-name { font-size: 10px; color: #9a9488; width: 80px; flex-shrink: 0; }
+.gauge-bar { flex: 1; height: 5px; background: #242236; border-radius: 3px; overflow: hidden; }
 .gauge-fill { height: 100%; border-radius: 3px; transition: width 0.2s; }
-.gauge-val { font-size: 11px; font-family: monospace; width: 48px; text-align: right; flex-shrink: 0; }
-
-#vowelCanvas, #pitchCanvas { height: 180px; }
-#healthCanvas { height: 140px; }
-#rangeCanvas { height: 100px; }
-
-/* Session log */
-.session-empty { text-align: center; color: #9a9488; font-size: 13px; padding: 24px 0; }
-.stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid #2e2b4a; }
+.gauge-val { font-size: 11px; font-family: monospace; width: 58px; text-align: right; flex-shrink: 0; }
+.register-badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 10px; letter-spacing: 0.08em; }
+.session-empty { text-align: center; color: #9a9488; font-size: 12px; padding: 20px 0; }
+.stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #2e2b4a; }
 .stat-row:last-child { border-bottom: none; }
-.stat-key { font-size: 12px; color: #9a9488; }
-.stat-val { font-size: 14px; font-family: monospace; color: #f5f0e8; }
-.export-btn { background: rgba(78,184,160,0.1); border: 1px solid #4eb8a0; color: #4eb8a0; border-radius: 4px; padding: 6px 14px; font-family: Georgia, serif; font-size: 12px; cursor: pointer; margin-top: 12px; width: 100%; }
-.export-btn:hover { background: rgba(78,184,160,0.2); }
-.session-entry { background: #1a1828; border: 1px solid #2e2b4a; border-radius: 5px; padding: 12px 14px; margin-bottom: 8px; }
-.session-date { font-size: 10px; color: #7a6430; letter-spacing: 0.1em; margin-bottom: 6px; }
-
-/* Register badge */
-.register-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; letter-spacing: 0.08em; }
-
-#idle { text-align: center; padding: 14px 0 0; color: #9a9488; font-size: 13px; }
+.stat-key { font-size: 11px; color: #9a9488; }
+.stat-val { font-size: 13px; font-family: monospace; color: #f5f0e8; }
+.export-btn { background: rgba(78,184,160,0.1); border: 1px solid #4eb8a0; color: #4eb8a0; border-radius: 4px; padding: 6px 14px; font-family: Georgia, serif; font-size: 11px; cursor: pointer; margin-top: 10px; width: 100%; }
+.session-entry { background: #1a1828; border: 1px solid #2e2b4a; border-radius: 5px; padding: 10px 12px; margin-bottom: 7px; }
+.session-date { font-size: 9px; color: #7a6430; letter-spacing: 0.1em; margin-bottom: 5px; }
+#idle { text-align: center; padding: 12px 0 0; color: #9a9488; font-size: 12px; }
 #idle span { color: #c9a84c; }
-
+canvas { display: block; width: 100%; border-radius: 4px; }
+#vowelCanvas, #spectroCanvas { height: 180px; }
+#healthCanvas { height: 130px; }
+#rangeCanvas { height: 95px; }
+/* Exercise tab */
+.ex-target { text-align: center; padding: 18px 0 10px; }
+.ex-note { font-size: 64px; font-family: monospace; font-weight: normal; line-height: 1; }
+.ex-hz { font-size: 13px; color: #9a9488; margin-top: 4px; }
+#spectroCanvas { height: 160px; }
+#exerciseCanvas { height: 120px; }
+.ex-score { display: flex; justify-content: center; gap: 24px; margin: 10px 0; }
+.ex-score-val { text-align: center; }
+.ex-score-num { font-size: 32px; font-family: monospace; color: #c9a84c; }
+.ex-score-label { font-size: 10px; color: #9a9488; letter-spacing: 0.1em; text-transform: uppercase; }
+.ex-btn-row { display: flex; gap: 8px; margin-bottom: 9px; }
+.ex-btn { flex: 1; background: rgba(201,168,76,0.1); border: 1px solid #7a6430; color: #c9a84c; border-radius: 4px; padding: 7px 8px; font-family: Georgia, serif; font-size: 11px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.ex-btn.active-mode { background: rgba(201,168,76,0.25); border-color: #c9a84c; }
+.ex-btn:hover { background: rgba(201,168,76,0.2); }
+.snap-btn { background: rgba(78,184,160,0.1); border: 1px solid #4eb8a0; color: #4eb8a0; border-radius: 4px; padding: 5px 12px; font-family: Georgia, serif; font-size: 11px; cursor: pointer; }
+.snap-frozen { background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #c9a84c; }
 @media (max-width: 480px) {
   .grid4 { grid-template-columns: 1fr 1fr; }
   .grid3 { grid-template-columns: 1fr 1fr; }
+  .ex-note { font-size: 48px; }
 }
-canvas { display: block; width: 100%; border-radius: 4px; }
-
 </style>
 </head>
 <body>
-
 <header>
-  <div>
-    <div class="eyebrow">Voice Studio</div>
-    <h1>Vocal Analysis</h1>
-  </div>
+  <div><div class="eyebrow">Voice Studio</div><h1>Vocal Analysis</h1></div>
   <button id="listenBtn">◉ Listen</button>
 </header>
 <div id="error"></div>
-
 <div class="tabs">
   <div class="tab active" data-tab="live">Live</div>
   <div class="tab" data-tab="health">Health</div>
+  <div class="tab" data-tab="exercise">Exercise</div>
   <div class="tab" data-tab="session">Session</div>
 </div>
 
-<!-- ── LIVE TAB ── -->
+<!-- ── LIVE ── -->
 <div class="tab-panel active" id="tab-live">
   <div class="grid4">
     <div class="card" style="margin-bottom:0">
@@ -96,7 +95,7 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       <div class="sub" id="hzDisplay"></div>
     </div>
     <div class="card" style="margin-bottom:0">
-      <div class="card-label">Tuning</div>
+      <div class="card-label">Tuning <button class="snap-btn" id="snapBtn" style="float:right;margin-top:-2px">Snap</button></div>
       <div class="big" id="centsDisplay" style="color:#9a9488">–</div>
       <div class="sub" id="centsLabel"></div>
     </div>
@@ -107,23 +106,19 @@ canvas { display: block; width: 100%; border-radius: 4px; }
     </div>
     <div class="card" style="margin-bottom:0">
       <div class="card-label">Register</div>
-      <div style="margin-top:4px" id="registerBadge"><span style="color:#9a9488;font-size:13px">–</span></div>
+      <div style="margin-top:3px" id="registerBadge"><span style="color:#9a9488;font-size:12px">–</span></div>
       <div class="sub" id="registerSub"></div>
     </div>
   </div>
-  <div style="margin-bottom:12px"></div>
-
-  <!-- Singer's formant -->
+  <div style="margin-bottom:9px"></div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
       <div class="card-label" style="margin-bottom:0">Singer's Formant (2.5–3.2 kHz)</div>
-      <div id="sfStatus" style="font-size:11px;font-family:monospace;color:#9a9488">–</div>
+      <div id="sfStatus" style="font-size:10px;font-family:monospace;color:#9a9488">–</div>
     </div>
     <div class="bar-bg"><div class="bar-fill" id="sfBar" style="width:0%"></div></div>
     <div class="hint">Resonance cluster that lets classical voices carry over an orchestra without amplification</div>
   </div>
-
-  <!-- Canvases -->
   <div class="grid2">
     <div class="card">
       <div class="card-label">Vowel Space</div>
@@ -131,106 +126,180 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       <div class="hint">F1 × F2. Gold dot = current vowel position.</div>
     </div>
     <div class="card">
-      <div class="card-label">Pitch Trace</div>
-      <canvas id="pitchCanvas"></canvas>
-      <div class="hint">Smooth undulation = vibrato. Flat = straight tone.</div>
+      <div class="card-label">Spectrogram</div>
+      <canvas id="spectroCanvas"></canvas>
+      <div class="hint">Frequency over time. Bright bands = strong harmonics. Singer's formant visible ~2.5–3kHz.</div>
     </div>
   </div>
-
-  <!-- Formants -->
   <div class="card">
     <div class="card-label">Formants</div>
     <div class="grid3" style="margin-bottom:0">
       <div>
-        <div style="font-size:10px;color:#7a6430;font-family:monospace;margin-bottom:3px">F1</div>
+        <div style="font-size:9px;color:#7a6430;font-family:monospace;margin-bottom:2px">F1</div>
         <div class="med" id="f1Val" style="color:#9a9488">–</div>
         <div class="sub" id="f1Unit"></div>
         <div class="hint">Jaw / vowel height</div>
       </div>
       <div>
-        <div style="font-size:10px;color:#7a6430;font-family:monospace;margin-bottom:3px">F2</div>
+        <div style="font-size:9px;color:#7a6430;font-family:monospace;margin-bottom:2px">F2</div>
         <div class="med" id="f2Val" style="color:#9a9488">–</div>
         <div class="sub" id="f2Unit"></div>
         <div class="hint">Tongue front/back</div>
       </div>
       <div>
-        <div style="font-size:10px;color:#7a6430;font-family:monospace;margin-bottom:3px">F3</div>
+        <div style="font-size:9px;color:#7a6430;font-family:monospace;margin-bottom:2px">F3</div>
         <div class="med" id="f3Val" style="color:#9a9488">–</div>
         <div class="sub" id="f3Unit"></div>
         <div class="hint">Lip rounding / color</div>
       </div>
     </div>
   </div>
-
   <div id="idle">Press <span>Listen</span> and sing to begin.</div>
 </div>
 
-<!-- ── HEALTH TAB ── -->
+<!-- ── HEALTH ── -->
 <div class="tab-panel" id="tab-health">
   <div class="card">
     <div class="card-label">Vocal Health Indicators</div>
-    <div class="hint" style="margin-bottom:12px">These metrics are early-warning signals. Healthy values appear in teal; values outside normal range appear in amber or rose.</div>
-
+    <div class="hint" style="margin-bottom:10px">Real-time acoustic health signals. Teal = healthy range. Amber = monitor. Rose = outside normal.</div>
     <div class="gauge-row">
       <div class="gauge-name">HNR</div>
       <div class="gauge-bar"><div class="gauge-fill" id="hnrBar" style="width:0%"></div></div>
       <div class="gauge-val" id="hnrVal" style="color:#9a9488">–</div>
     </div>
-    <div class="hint" style="margin-bottom:10px">Harmonics-to-Noise Ratio — breathiness indicator. Healthy singing: &gt;20 dB. Low values suggest breathy or pressed phonation.</div>
+    <div class="hint">Harmonics-to-Noise Ratio — measures breathiness vs. tone clarity. Healthy singing: &gt;20 dB. Low values suggest breathy or pressed phonation.</div>
+    <div class="ref">Titze IR (1994). <em>Principles of Voice Production.</em> Prentice Hall. pp. 279–282.</div>
 
+    <div style="margin-top:10px"></div>
     <div class="gauge-row">
       <div class="gauge-name">Jitter</div>
       <div class="gauge-bar"><div class="gauge-fill" id="jitterBar" style="width:0%"></div></div>
       <div class="gauge-val" id="jitterVal" style="color:#9a9488">–</div>
     </div>
-    <div class="hint" style="margin-bottom:10px">Cycle-to-cycle pitch variation. Normal: &lt;1%. Elevated jitter is an early sign of vocal fatigue or strain.</div>
+    <div class="hint">Cycle-to-cycle pitch variation. Normal speaking voice: &lt;1.04%. Elevated jitter is an early sign of vocal fatigue, nodules, or laryngeal tension.</div>
+    <div class="ref">Baken RJ &amp; Orlikoff RF (2000). <em>Clinical Measurement of Speech and Voice.</em> 2nd ed. Singular. pp. 168–172.</div>
 
+    <div style="margin-top:10px"></div>
     <div class="gauge-row">
       <div class="gauge-name">Shimmer</div>
       <div class="gauge-bar"><div class="gauge-fill" id="shimmerBar" style="width:0%"></div></div>
       <div class="gauge-val" id="shimmerVal" style="color:#9a9488">–</div>
     </div>
-    <div class="hint" style="margin-bottom:10px">Cycle-to-cycle amplitude variation. Normal: &lt;3 dB. Elevated shimmer can indicate laryngeal tension or fatigue.</div>
+    <div class="hint">Cycle-to-cycle amplitude variation. Normal: &lt;3.81% (dB shimmer &lt;0.35 dB). Elevated shimmer can indicate laryngeal tension, fatigue, or vocal fold pathology.</div>
+    <div class="ref">Dejonckere PH et al. (2001). A basic protocol for functional assessment of voice pathology. <em>Eur Arch Otorhinolaryngol.</em> 258(2):77–82.</div>
 
+    <div style="margin-top:10px"></div>
     <div class="gauge-row">
       <div class="gauge-name">Spectral Tilt</div>
       <div class="gauge-bar"><div class="gauge-fill" id="tiltBar" style="width:0%"></div></div>
       <div class="gauge-val" id="tiltVal" style="color:#9a9488">–</div>
     </div>
-    <div class="hint">Energy roll-off with frequency. A flatter tilt = brighter, more forward placement. Steep tilt = darker or covered tone.</div>
+    <div class="hint">Energy roll-off per octave. Flatter tilt (closer to 0 dB/oct) = brighter, more forward placement. Steep negative tilt = darker or covered tone. Classical singing typically targets −6 to −18 dB/oct.</div>
+    <div class="ref">Sundberg J (1987). <em>The Science of the Singing Voice.</em> Northern Illinois University Press. pp. 118–124.</div>
   </div>
 
   <div class="card">
     <div class="card-label">Health Over Session</div>
     <canvas id="healthCanvas"></canvas>
-    <div class="hint" style="margin-top:6px">HNR (teal) and jitter (amber) over time. Downward trends may indicate fatigue.</div>
+    <div class="hint" style="margin-top:5px">HNR (teal) and jitter (amber). Downward HNR trend or rising jitter over a lesson may indicate vocal fatigue.</div>
   </div>
 
   <div class="card">
-    <div class="card-label">What to watch for</div>
-    <div class="stat-row"><div class="stat-key">Jitter rising over lesson</div><div class="stat-val" style="font-size:12px;color:#c9a84c">Vocal fatigue</div></div>
-    <div class="stat-row"><div class="stat-key">Low HNR + high shimmer</div><div class="stat-val" style="font-size:12px;color:#c4607a">Pressed phonation</div></div>
-    <div class="stat-row"><div class="stat-key">Very low HNR</div><div class="stat-val" style="font-size:12px;color:#9a9488">Breathy tone</div></div>
-    <div class="stat-row"><div class="stat-key">Flat spectral tilt</div><div class="stat-val" style="font-size:12px;color:#4eb8a0">Forward placement</div></div>
+    <div class="card-label">Clinical Reference Ranges</div>
+    <div class="stat-row"><div class="stat-key">Healthy HNR (singing)</div><div class="stat-val" style="font-size:11px;color:#4eb8a0">&gt; 20 dB</div></div>
+    <div class="stat-row"><div class="stat-key">Healthy Jitter</div><div class="stat-val" style="font-size:11px;color:#4eb8a0">&lt; 1.04%</div></div>
+    <div class="stat-row"><div class="stat-key">Healthy Shimmer</div><div class="stat-val" style="font-size:11px;color:#4eb8a0">&lt; 3.81%</div></div>
+    <div class="stat-row"><div class="stat-key">Rising jitter over lesson</div><div class="stat-val" style="font-size:11px;color:#c9a84c">Vocal fatigue</div></div>
+    <div class="stat-row"><div class="stat-key">Low HNR + high shimmer</div><div class="stat-val" style="font-size:11px;color:#c4607a">Pressed phonation</div></div>
+    <div class="stat-row"><div class="stat-key">Singer's formant present</div><div class="stat-val" style="font-size:11px;color:#4eb8a0">Trained placement</div></div>
   </div>
 </div>
 
-<!-- ── SESSION TAB ── -->
-<div class="tab-panel" id="tab-session">
+<!-- ── EXERCISE ── -->
+<div class="tab-panel" id="tab-exercise">
   <div class="card">
-    <div class="card-label">This Session</div>
-    <div id="sessionLive">
-      <div class="session-empty">No data yet — start singing to record a session.</div>
+    <div class="card-label">Mode</div>
+    <div class="ex-btn-row">
+      <div class="ex-btn active-mode" id="modeRandom" onclick="setMode('random')">Random</div>
+      <div class="ex-btn" id="modeScale" onclick="setMode('scale')">Scale</div>
+      <div class="ex-btn" id="modePick" onclick="setMode('pick')">Pick Note</div>
+    </div>
+    <div id="scaleControls" style="display:none;margin-bottom:8px">
+      <select id="scaleRoot" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:5px 8px;font-family:Georgia,serif;font-size:12px;margin-right:6px">
+        <option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option>
+      </select>
+      <select id="scaleType" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:5px 8px;font-family:Georgia,serif;font-size:12px">
+        <option value="major">Major</option>
+        <option value="minor">Natural Minor</option>
+        <option value="chromatic">Chromatic</option>
+      </select>
+    </div>
+    <div id="pickControls" style="display:none;margin-bottom:8px">
+      <select id="pickNote" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:5px 8px;font-family:Georgia,serif;font-size:12px;margin-right:6px">
+        <option>C4</option><option>D4</option><option>E4</option><option>F4</option><option>G4</option><option>A4</option><option>B4</option>
+        <option>C5</option><option>D5</option><option>E5</option><option>F5</option><option>G5</option><option>A5</option>
+      </select>
+      <button class="ex-btn" style="flex:none;padding:5px 12px" onclick="setTargetFromPick()">Set</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="ex-btn" style="flex:none" onclick="nextNote()">Next note ›</button>
+      <div style="flex:1"></div>
+      <label style="font-size:10px;color:#9a9488;display:flex;align-items:center;gap:5px">
+        Range:
+        <select id="rangeSelect" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:4px 6px;font-family:monospace;font-size:11px">
+          <option value="low">Low (C3–B3)</option>
+          <option value="mid" selected>Mid (C4–B4)</option>
+          <option value="high">High (C5–B5)</option>
+          <option value="all">Full (C3–B5)</option>
+        </select>
+      </label>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-label">Pitch Range</div>
-    <canvas id="rangeCanvas"></canvas>
-    <div class="hint" style="margin-top:6px">All pitches sung this session. The passaggio region is where register transitions tend to occur.</div>
+    <div class="ex-target">
+      <div style="font-size:10px;letter-spacing:0.15em;color:#9a9488;text-transform:uppercase;margin-bottom:6px">Target</div>
+      <div class="ex-note" id="exTargetNote">–</div>
+      <div class="ex-hz" id="exTargetHz"></div>
+    </div>
+    <canvas id="exerciseCanvas"></canvas>
+    <div class="hint" style="margin-top:5px;text-align:center" id="exFeedback">Start listening and match the target note</div>
   </div>
 
-  <div class="card" id="historyCard">
+  <div class="ex-score">
+    <div class="ex-score-val">
+      <div class="ex-score-num" id="exStreak">0</div>
+      <div class="ex-score-label">Streak</div>
+    </div>
+    <div class="ex-score-val">
+      <div class="ex-score-num" id="exScore">0</div>
+      <div class="ex-score-label">Score</div>
+    </div>
+    <div class="ex-score-val">
+      <div class="ex-score-num" id="exBest">0</div>
+      <div class="ex-score-label">Best</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Spectrolizer</div>
+    <canvas id="spectroExCanvas"></canvas>
+    <div class="hint" style="margin-top:5px">Real-time FFT. The target frequency is marked in gold.</div>
+  </div>
+</div>
+
+<!-- ── SESSION ── -->
+<div class="tab-panel" id="tab-session">
+  <div class="card">
+    <div class="card-label">This Session</div>
+    <div id="sessionLive"><div class="session-empty">No data yet — start singing to record a session.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Pitch Range</div>
+    <canvas id="rangeCanvas"></canvas>
+    <div class="hint" style="margin-top:5px">All pitches sung this session. Gold band = passaggio region.</div>
+  </div>
+  <div class="card">
     <div class="card-label">Session History</div>
     <div id="sessionHistory"><div class="session-empty">Saved sessions will appear here.</div></div>
     <button class="export-btn" id="exportBtn">Export session as CSV</button>
@@ -239,58 +308,52 @@ canvas { display: block; width: 100%; border-radius: 4px; }
 
 <script>
 // ── Colors ─────────────────────────────────────────────────────────────────
-const C = {
-  bg:"#0f0e17", surface:"#1a1828", hi:"#242236", border:"#2e2b4a",
-  gold:"#c9a84c", goldDim:"#7a6430", ivory:"#f5f0e8", dim:"#9a9488",
-  rose:"#c4607a", teal:"#4eb8a0", tealDim:"#2a6e60"
-};
+const C={bg:"#0f0e17",surface:"#1a1828",hi:"#242236",border:"#2e2b4a",
+  gold:"#c9a84c",goldDim:"#7a6430",ivory:"#f5f0e8",dim:"#9a9488",
+  rose:"#c4607a",teal:"#4eb8a0",tealDim:"#2a6e60"};
 
-const VOWELS = [
-  {label:"ee",f1:280,f2:2650},{label:"ih",f1:390,f2:2100},{label:"eh",f1:610,f2:1900},
-  {label:"ah",f1:850,f2:1600},{label:"aw",f1:590,f2:880},{label:"oh",f1:450,f2:750},
-  {label:"oo",f1:310,f2:870},{label:"uh",f1:710,f2:1220}
-];
-
-// ── Sharp canvas setup (devicePixelRatio) ─────────────────────────────────
-const CTX = {};
-function setupCanvas(id) {
-  const canvas = document.getElementById(id);
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  const w = Math.round(rect.width * dpr);
-  const h = Math.round(rect.height * dpr);
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-  }
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  CTX[id] = ctx;
-  CTX[id+'W'] = rect.width;
-  CTX[id+'H'] = rect.height;
-  return ctx;
+// ── Canvas registry ────────────────────────────────────────────────────────
+const CTX={};
+function setupCanvas(id){
+  const el=document.getElementById(id); if(!el) return;
+  const dpr=window.devicePixelRatio||1;
+  const rect=el.getBoundingClientRect();
+  if(rect.width===0||rect.height===0) return;
+  el.width=Math.round(rect.width*dpr);
+  el.height=Math.round(rect.height*dpr);
+  const ctx=el.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  CTX[id]=ctx; CTX[id+'W']=rect.width; CTX[id+'H']=rect.height;
 }
-function setupAllCanvases() {
-  setupCanvas('vowelCanvas');
-  setupCanvas('pitchCanvas');
-  setupCanvas('healthCanvas');
-  setupCanvas('rangeCanvas');
+function setupAllCanvases(){
+  ['vowelCanvas','spectroCanvas','healthCanvas','rangeCanvas','exerciseCanvas','spectroExCanvas'].forEach(setupCanvas);
 }
 
-
-document.querySelectorAll('.tab').forEach(t => {
-  t.addEventListener('click', () => {
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-    // Re-setup canvases now that panel is visible
     requestAnimationFrame(redrawAll);
   });
 });
 
-// ── DSP helpers ────────────────────────────────────────────────────────────
-function autoCorrelate(buf, sr) {
+// ── Note names ─────────────────────────────────────────────────────────────
+const NOTE_NAMES=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+function freqToNote(freq){
+  if(freq<=0) return{note:"–",cents:0,midi:0};
+  const midi=69+12*Math.log2(freq/440);
+  const mr=Math.round(midi);
+  const cents=Math.round((midi-mr)*100);
+  return{note:NOTE_NAMES[((mr%12)+12)%12]+Math.floor(mr/12-1),cents,midi:mr};
+}
+function midiToFreq(m){return 440*Math.pow(2,(m-69)/12);}
+function midiToName(m){return NOTE_NAMES[((m%12)+12)%12]+Math.floor(m/12-1);}
+
+// ── DSP: autocorrelation pitch ─────────────────────────────────────────────
+function autoCorrelate(buf,sr){
   const SIZE=buf.length;
   const rms=Math.sqrt(buf.reduce((s,v)=>s+v*v,0)/SIZE);
   if(rms<0.01) return -1;
@@ -308,11 +371,12 @@ function autoCorrelate(buf, sr) {
   return sr/(mp+(x3-x1)/(2*(2*x2-x1-x3)));
 }
 
-function lpc(sig, order) {
-  const n=sig.length, r=new Float32Array(order+1);
+// ── DSP: LPC formants ──────────────────────────────────────────────────────
+function lpc(sig,order){
+  const n=sig.length,r=new Float32Array(order+1);
   for(let i=0;i<=order;i++) for(let j=0;j<n-i;j++) r[i]+=sig[j]*sig[j+i];
-  const a=new Float32Array(order+1), err=new Float32Array(order+1);
-  a[0]=1; err[0]=r[0];
+  const a=new Float32Array(order+1),err=new Float32Array(order+1);
+  a[0]=1;err[0]=r[0];
   for(let i=1;i<=order;i++){
     let lam=0;
     for(let j=0;j<i;j++) lam-=a[j]*r[i-j];
@@ -323,14 +387,12 @@ function lpc(sig, order) {
   }
   return a;
 }
-
 const fmtSmooth={f1:[],f2:[],f3:[]};
 function smoothF(key,val,n=6){
   if(val<=0) return fmtSmooth[key].length?fmtSmooth[key][fmtSmooth[key].length-1]:0;
   fmtSmooth[key]=[...fmtSmooth[key].slice(-(n-1)),val];
   return fmtSmooth[key].reduce((a,b)=>a+b,0)/fmtSmooth[key].length;
 }
-
 function findFormants(sig,sr,order=14){
   const pre=new Float32Array(sig.length);
   pre[0]=sig[0];
@@ -339,23 +401,22 @@ function findFormants(sig,sr,order=14){
   const a=lpc(win,order);
   const nP=1024,spec=new Float32Array(nP);
   for(let k=0;k<nP;k++){
-    const w=2*Math.PI*k/nP; let re=0,im=0;
+    const w=2*Math.PI*k/nP;let re=0,im=0;
     for(let j=0;j<=order;j++){re+=a[j]*Math.cos(j*w);im+=a[j]*Math.sin(j*w);}
-    const m=re*re+im*im; spec[k]=m<1e-10?0:1/m;
+    const m=re*re+im*im;spec[k]=m<1e-10?0:1/m;
   }
   const peaks=[];
   for(let k=2;k<nP/2-2;k++){
     if(spec[k]>spec[k-1]&&spec[k]>spec[k+1]&&spec[k]>spec[k-2]&&spec[k]>spec[k+2]){
       const freq=(k/nP)*sr;
       if(freq<200||freq>4500) continue;
-      let bwL=k,bwR=k; const half=spec[k]*0.5;
+      let bwL=k,bwR=k;const half=spec[k]*0.5;
       while(bwL>0&&spec[bwL]>half)bwL--;
       while(bwR<nP/2&&spec[bwR]>half)bwR++;
       if(((bwR-bwL)/nP)*sr<20) continue;
-      const localMin=Math.min(...Array.from(spec.slice(Math.max(0,k-30),k)),...Array.from(spec.slice(k+1,Math.min(nP/2,k+31))));
-      const prom=(spec[k]-localMin)/spec[k];
-      if(prom<0.15) continue;
-      peaks.push({freq,power:spec[k],prom});
+      const lMin=Math.min(...Array.from(spec.slice(Math.max(0,k-30),k)),...Array.from(spec.slice(k+1,Math.min(nP/2,k+31))));
+      if((spec[k]-lMin)/spec[k]<0.15) continue;
+      peaks.push({freq,power:spec[k],prom:(spec[k]-lMin)/spec[k]});
     }
   }
   const bands=[{lo:200,hi:1100},{lo:700,hi:2800},{lo:1800,hi:4000}];
@@ -369,15 +430,7 @@ function findFormants(sig,sr,order=14){
   return{f1:Math.round(smoothF('f1',fmts[0])),f2:Math.round(smoothF('f2',fmts[1])),f3:Math.round(smoothF('f3',fmts[2]))};
 }
 
-function freqToNote(freq){
-  if(freq<=0) return{note:"–",cents:0,midi:0};
-  const midi=69+12*Math.log2(freq/440);
-  const mr=Math.round(midi);
-  const cents=Math.round((midi-mr)*100);
-  const names=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
-  return{note:names[((mr%12)+12)%12]+Math.floor(mr/12-1),cents,midi:mr};
-}
-
+// ── DSP: Vibrato ───────────────────────────────────────────────────────────
 function detectVibrato(hist){
   const recent=hist.slice(-40).filter(p=>p>0);
   if(recent.length<15) return{rate:0,extent:0,present:false};
@@ -391,246 +444,462 @@ function detectVibrato(hist){
   return{rate:Math.round(rate*10)/10,extent:Math.round(extC),present:rate>4&&rate<8&&extC>20&&extC<200};
 }
 
-// ── HNR (Harmonics-to-Noise Ratio) ────────────────────────────────────────
-function calcHNR(buf, sr, pitch) {
+// ── DSP: HNR ──────────────────────────────────────────────────────────────
+function calcHNR(buf,sr,pitch){
   if(pitch<=0) return 0;
   const period=Math.round(sr/pitch);
   if(period<2||period>=buf.length/2) return 0;
-  let signal=0, noise=0;
+  let signal=0,noise=0;
   const n=Math.floor(buf.length/period)*period;
   for(let i=0;i<n-period;i++){
     const diff=buf[i]-buf[i+period];
-    signal+=buf[i]*buf[i];
-    noise+=diff*diff*0.5;
+    signal+=buf[i]*buf[i]; noise+=diff*diff*0.5;
   }
   if(noise<1e-10) return 40;
   const ratio=signal/noise;
-  return ratio>1 ? Math.min(40, 10*Math.log10(ratio)) : 0;
+  return ratio>1?Math.min(40,10*Math.log10(ratio)):0;
 }
 
-// ── Jitter (pitch period variation) ──────────────────────────────────────
+// ── DSP: Jitter ────────────────────────────────────────────────────────────
 const periodHist=[];
-function calcJitter(buf, sr, pitch){
+function calcJitter(buf,sr,pitch){
   if(pitch<=0) return 0;
   const period=Math.round(sr/pitch);
   periodHist.push(period);
   if(periodHist.length>20) periodHist.shift();
   if(periodHist.length<4) return 0;
   let sumDiff=0,sumPer=0;
-  for(let i=1;i<periodHist.length;i++){
-    sumDiff+=Math.abs(periodHist[i]-periodHist[i-1]);
-    sumPer+=periodHist[i];
-  }
+  for(let i=1;i<periodHist.length;i++){sumDiff+=Math.abs(periodHist[i]-periodHist[i-1]);sumPer+=periodHist[i];}
   const mean=sumPer/(periodHist.length-1);
   return mean>0?(sumDiff/(periodHist.length-1))/mean*100:0;
 }
 
-// ── Shimmer (amplitude variation) ─────────────────────────────────────────
-const ampHist=[];
-function calcShimmer(buf, sr, pitch){
+// ── DSP: Shimmer ───────────────────────────────────────────────────────────
+function calcShimmer(buf,sr,pitch){
   if(pitch<=0) return 0;
   const period=Math.round(sr/pitch);
   if(period<2) return 0;
-  // RMS per period
-  let amps=[];
+  const amps=[];
   for(let i=0;i+period<buf.length;i+=period){
     const rms=Math.sqrt(buf.slice(i,i+period).reduce((s,v)=>s+v*v,0)/period);
     amps.push(rms);
   }
   if(amps.length<3) return 0;
-  // Compute shimmer from this frame's periods only (no cross-frame accumulation)
   let sumDiff=0;
   for(let i=1;i<amps.length;i++) sumDiff+=Math.abs(amps[i]-amps[i-1]);
   const meanAmp=amps.reduce((a,b)=>a+b,0)/amps.length;
   if(meanAmp<1e-8) return 0;
-  return Math.min(20, (sumDiff/(amps.length-1))/meanAmp*100);
+  return Math.min(20,(sumDiff/(amps.length-1))/meanAmp*100);
 }
 
-// ── Spectral tilt (dB/octave) ──────────────────────────────────────────────
-function calcSpectralTilt(freqData, sr, fftSize){
-  // Linear regression of dB(energy) vs octave number in 200–5000 Hz range
-  // Returns dB/octave slope — negative means energy falls with frequency
+// ── DSP: Spectral tilt ────────────────────────────────────────────────────
+function calcSpectralTilt(freqData,sr,fftSize){
   const binHz=sr/fftSize;
   const lo=Math.max(1,Math.floor(200/binHz));
   const hi=Math.min(freqData.length-1,Math.floor(5000/binHz));
   let sx=0,sy=0,sxx=0,sxy=0,n=0;
   for(let k=lo;k<=hi;k++){
-    const db=20*Math.log10((freqData[k]/255)+1e-6); // dB
-    const oct=Math.log2(k*binHz/200); // octaves above 200 Hz
-    sx+=oct; sy+=db; sxx+=oct*oct; sxy+=oct*db; n++;
+    const db=20*Math.log10((freqData[k]/255)+1e-6);
+    const oct=Math.log2(k*binHz/200);
+    sx+=oct;sy+=db;sxx+=oct*oct;sxy+=oct*db;n++;
   }
   if(n<2) return -30;
-  const slope=(n*sxy-sx*sy)/(n*sxx-sx*sx);
-  return Math.max(-60, Math.min(0, slope)); // clamp to [-60, 0] dB/oct
+  return Math.max(-60,Math.min(0,(n*sxy-sx*sy)/(n*sxx-sx*sx)));
 }
 
-// ── Register detection ─────────────────────────────────────────────────────
-function detectRegister(pitch, freqData, sr, fftSize){
+// ── DSP: Register (improved) ──────────────────────────────────────────────
+// Uses H1-H2 difference (a validated acoustic correlate of register)
+// plus pitch range heuristics. Falsetto has very weak H2 relative to H1.
+function detectRegister(pitch,freqData,sr,fftSize){
   if(pitch<=0) return{label:"–",color:C.dim,sub:""};
-  // Rough register estimation:
-  // Chest: strong low harmonics (H1 > H2 by big margin typical)
-  // Head: strong upper harmonics, H1 and H2 more equal
   const binHz=sr/fftSize;
-  const h1bin=Math.round(pitch/binHz);
-  const h2bin=Math.round(pitch*2/binHz);
-  const h3bin=Math.round(pitch*3/binHz);
-  if(h1bin>=freqData.length||h2bin>=freqData.length) return{label:"–",color:C.dim,sub:""};
-  const h1=freqData[h1bin]||1, h2=freqData[h2bin]||1, h3=freqData[h3bin]||1;
-  const ratio=(h2+h3)/(h1+1);
-  // Also use pitch range heuristics (rough for typical female classical)
-  const {midi}=freqToNote(pitch);
-  if(midi>=60&&midi<=72){ // C4–C5 passaggio zone
-    if(ratio>1.1) return{label:"Head/Mix",color:C.teal,sub:"passaggio zone"};
-    return{label:"Chest/Mix",color:C.gold,sub:"passaggio zone"};
+  // Sample energy around each harmonic (±1 bin)
+  function harmonicEnergy(n){
+    const b=Math.round(pitch*n/binHz);
+    if(b<1||b>=freqData.length-1) return 0;
+    return Math.max(freqData[b-1],freqData[b],freqData[b+1]);
   }
-  if(ratio>1.2) return{label:"Head",color:C.teal,sub:"upper harmonics dominant"};
-  if(ratio<0.8) return{label:"Chest",color:C.gold,sub:"fundamental dominant"};
-  return{label:"Mixed",color:"#a07dd6",sub:"balanced harmonics"};
+  const h1=harmonicEnergy(1)||1;
+  const h2=harmonicEnergy(2)||1;
+  const h3=harmonicEnergy(3)||1;
+  const h4=harmonicEnergy(4)||1;
+  // H1-H2 in dB: key measure — chest has H2>H1, falsetto/head has H1>H2
+  const h1h2db=20*Math.log10(h1/h2);
+  // Overall harmonic richness (chest has more upper harmonics)
+  const upperMean=(h3+h4)/2;
+  const {midi}=freqToNote(pitch);
+
+  // Falsetto: H1 dominates strongly (h1h2db > 6dB), typically above C4
+  if(h1h2db>8&&midi>60){
+    return{label:"Falsetto",color:"#a07dd6",sub:"H1 dominant, weak upper harmonics"};
+  }
+  // Head voice: H1 slightly dominant, high pitch
+  if(h1h2db>3&&midi>65){
+    return{label:"Head",color:C.teal,sub:"upper register, H1 prominent"};
+  }
+  // Chest: H2 and upper harmonics strong
+  if(h1h2db<-2&&upperMean>40){
+    return{label:"Chest",color:C.gold,sub:"lower register, H2 dominant"};
+  }
+  // Passaggio zone
+  if(midi>=58&&midi<=68){
+    return{label:"Passaggio",color:C.rose,sub:"register transition zone"};
+  }
+  // Mixed
+  return{label:"Mixed",color:"#88b4d0",sub:"balanced harmonic structure"};
 }
 
-// ── State ─────────────────────────────────────────────────────────────────
-let audioCtx=null, analyser=null, raf=null, listening=false;
-let pitchHist=[], vowelHist=[], healthHist=[], allPitches=[];
-let sessionStart=null;
-const savedSessions=[];
+// ── Stable tuning (lowest-variance window) ────────────────────────────────
+const recentPitches=[];
+let snapFrozen=false, snapValue=null;
+document.getElementById('snapBtn').addEventListener('click',()=>{
+  if(snapFrozen){snapFrozen=false;document.getElementById('snapBtn').classList.remove('snap-frozen');document.getElementById('snapBtn').textContent='Snap';}
+  else if(recentPitches.length>3){
+    snapValue=recentPitches.reduce((a,b)=>a+b,0)/recentPitches.length;
+    snapFrozen=true;
+    document.getElementById('snapBtn').classList.add('snap-frozen');
+    document.getElementById('snapBtn').textContent='Unsnap';
+  }
+});
+function getStablePitch(pitch){
+  if(pitch>0){
+    recentPitches.push(pitch);
+    if(recentPitches.length>12) recentPitches.shift();
+  }
+  if(snapFrozen&&snapValue) return snapValue;
+  if(recentPitches.length<4) return pitch;
+  // Find the 4-frame window with lowest variance
+  let bestVar=Infinity,bestMean=pitch;
+  for(let i=0;i<=recentPitches.length-4;i++){
+    const w=recentPitches.slice(i,i+4);
+    const m=w.reduce((a,b)=>a+b,0)/4;
+    const v=w.reduce((s,x)=>s+(x-m)*(x-m),0)/4;
+    if(v<bestVar){bestVar=v;bestMean=m;}
+  }
+  return bestMean;
+}
 
-// ── Canvases ───────────────────────────────────────────────────────────────
-const vowelCanvas=document.getElementById('vowelCanvas');
-const pitchCanvas=document.getElementById('pitchCanvas');
-const healthCanvas=document.getElementById('healthCanvas');
-const rangeCanvas=document.getElementById('rangeCanvas');
-// CTX populated by setupAllCanvases() below
-
-function drawVowelSpace(formants){
-  const ctx=CTX['vowelCanvas'], W=CTX['vowelCanvasW']||260, H=CTX['vowelCanvasH']||200;
+// ── Spectrogram state ─────────────────────────────────────────────────────
+// We maintain an offscreen ImageData rolling buffer
+const spectroBuffer={data:null,col:0,W:0,H:0};
+function initSpectroBuffer(W,H){
+  spectroBuffer.W=W; spectroBuffer.H=H; spectroBuffer.col=0;
+  spectroBuffer.data=new Uint8ClampedArray(W*H*4).fill(0);
+}
+function pushSpectroColumn(freqData,sr,fftSize,canvasId){
+  const ctx=CTX[canvasId];
   if(!ctx) return;
-  const f1ToY=f1=>H-((f1-200)/700)*(H-40)-20;
-  const f2ToX=f2=>W-((f2-700)/2300)*(W-40)-20;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=C.surface; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle=C.border; ctx.lineWidth=0.5;
-  [300,500,700].forEach(f1=>{const y=f1ToY(f1);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
-  [1000,1500,2000,2500].forEach(f2=>{const x=f2ToX(f2);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
-  ctx.fillStyle=C.dim; ctx.font="9px monospace";
-  ctx.fillText("← F2",W-28,H-3); ctx.fillText("F1↓",3,11);
+  const W=CTX[canvasId+'W']||300, H=CTX[canvasId+'H']||160;
+  if(spectroBuffer.W!==Math.round(W)||spectroBuffer.H!==Math.round(H)) initSpectroBuffer(Math.round(W),Math.round(H));
+  const {data,col}=spectroBuffer;
+  const bW=spectroBuffer.W, bH=spectroBuffer.H;
+  // Map frequency bins to canvas rows (log scale, 80–5000 Hz)
+  const loF=80, hiF=5000;
+  const binHz=sr/fftSize;
+  for(let row=0;row<bH;row++){
+    const frac=1-(row/bH);
+    const freq=loF*Math.pow(hiF/loF,frac);
+    const bin=Math.round(freq/binHz);
+    const amp=bin<freqData.length?freqData[bin]:0;
+    // Color map: dark purple → teal → gold → white
+    let r,g,b;
+    const t=amp/255;
+    if(t<0.33){const s=t/0.33;r=Math.round(15+s*39);g=Math.round(14+s*40);b=Math.round(23+s*90);}
+    else if(t<0.66){const s=(t-0.33)/0.33;r=Math.round(54+s*140);g=Math.round(54+s*130);b=Math.round(113-s*50);}
+    else{const s=(t-0.66)/0.34;r=Math.round(194+s*61);g=Math.round(184+s*71);b=Math.round(63+s*192);}
+    // Singer's formant band highlight (2500–3200 Hz) — subtle gold tint
+    if(freq>=2500&&freq<=3200&&amp>60){r=Math.min(255,r+30);g=Math.min(255,g+20);}
+    const idx=(row*bW+col)*4;
+    data[idx]=r;data[idx+1]=g;data[idx+2]=b;data[idx+3]=255;
+  }
+  spectroBuffer.col=(col+1)%bW;
+  // Draw: render from current col to end, then 0 to col
+  const imgData=new ImageData(data,bW,bH);
+  const offscreen=document.createElement('canvas');
+  offscreen.width=bW;offscreen.height=bH;
+  const oCtx=offscreen.getContext('2d');
+  oCtx.putImageData(imgData,0,0);
+  ctx.clearRect(0,0,W,H);
+  // Draw right part (col→end) then left part (0→col)
+  const splitX=spectroBuffer.col;
+  const scaleX=W/bW, scaleY=H/bH;
+  ctx.drawImage(offscreen,splitX,0,bW-splitX,bH,0,0,(bW-splitX)*scaleX,H);
+  ctx.drawImage(offscreen,0,0,splitX,bH,(bW-splitX)*scaleX,0,splitX*scaleX,H);
+  // Current-time line
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(W-1,0);ctx.lineTo(W-1,H);ctx.stroke();
+}
+
+// ── Exercise state ─────────────────────────────────────────────────────────
+let exMode='random', exTarget=null, exHoldMs=0, exHoldStart=null;
+let exScore=0, exStreak=0, exBest=0;
+const HOLD_NEEDED=1500; // ms to hold within ±25 cents to score
+const RANGES={
+  low:{min:48,max:59},mid:{min:60,max:71},high:{min:72,max:83},all:{min:48,max:83}
+};
+const SCALES={
+  major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10],chromatic:[0,1,2,3,4,5,6,7,8,9,10,11]
+};
+let scaleIdx=0;
+function setMode(m){
+  exMode=m;
+  ['random','scale','pick'].forEach(x=>{
+    document.getElementById('mode'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active-mode',x===m);
+  });
+  document.getElementById('scaleControls').style.display=m==='scale'?'block':'none';
+  document.getElementById('pickControls').style.display=m==='pick'?'block':'none';
+  scaleIdx=0; nextNote();
+}
+function nextNote(){
+  const rangeKey=document.getElementById('rangeSelect').value;
+  const {min,max}=RANGES[rangeKey];
+  let midi;
+  if(exMode==='random'){
+    midi=min+Math.floor(Math.random()*(max-min+1));
+  } else if(exMode==='scale'){
+    const root=document.getElementById('scaleRoot').value;
+    const type=document.getElementById('scaleType').value;
+    const rootMidi={'C':60,'D':62,'E':64,'F':65,'G':67,'A':69,'B':71}[root]||60;
+    const intervals=SCALES[type];
+    const allNotes=[];
+    for(let oct=-1;oct<=2;oct++){
+      intervals.forEach(i=>{const m=rootMidi+i+oct*12; if(m>=min&&m<=max) allNotes.push(m);});
+    }
+    if(!allNotes.length){midi=min;}
+    else{midi=allNotes[scaleIdx%allNotes.length];scaleIdx++;}
+  } else {
+    return; // pick mode uses setTargetFromPick
+  }
+  setExTarget(midi);
+}
+function setTargetFromPick(){
+  const noteStr=document.getElementById('pickNote').value;
+  const names={C:0,'C♯':1,D:2,'E♭':3,E:4,F:5,'F♯':6,G:7,'A♭':8,A:9,'B♭':10,B:11};
+  const name=noteStr.slice(0,-1), oct=parseInt(noteStr.slice(-1));
+  const midi=(oct+1)*12+names[name];
+  setExTarget(midi);
+}
+function setExTarget(midi){
+  exTarget=midi; exHoldMs=0; exHoldStart=null;
+  document.getElementById('exTargetNote').textContent=midiToName(midi);
+  document.getElementById('exTargetHz').textContent=midiToFreq(midi).toFixed(1)+' Hz';
+  document.getElementById('exFeedback').textContent='Match the target note';
+  document.getElementById('exFeedback').style.color=C.dim;
+}
+
+// Exercise canvas draw
+const exHistory=[];
+function drawExercise(pitch){
+  const ctx=CTX['exerciseCanvas'],W=CTX['exerciseCanvasW']||300,H=CTX['exerciseCanvasH']||120;
+  if(!ctx||!exTarget) return;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
+  // Target line in center
+  const targetY=H/2;
+  ctx.strokeStyle=C.gold+'66';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(0,targetY);ctx.lineTo(W,targetY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=C.gold;ctx.font='9px monospace';ctx.textAlign='right';
+  ctx.fillText(midiToName(exTarget),W-4,targetY-3);
+  // ±25 cent zone
+  const semH=H/8;
+  ctx.fillStyle=C.gold+'18';
+  ctx.fillRect(0,targetY-semH*0.5,W,semH);
+  // History line
+  if(exHistory.length>1){
+    ctx.beginPath();
+    exHistory.forEach(({cents:c},i)=>{
+      const x=(i/(exHistory.length-1))*W;
+      const y=targetY-c*(H/200);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle=C.teal;ctx.lineWidth=2;ctx.stroke();
+  }
+  // Current dot
+  if(pitch>0){
+    const {cents}=freqToNote(pitch);
+    const targetFreq=midiToFreq(exTarget);
+    const centsFromTarget=1200*Math.log2(pitch/targetFreq);
+    const y=targetY-centsFromTarget*(H/200);
+    const inZone=Math.abs(centsFromTarget)<25;
+    const grd=ctx.createRadialGradient(W-10,y,0,W-10,y,12);
+    grd.addColorStop(0,(inZone?C.teal:C.rose)+'cc');
+    grd.addColorStop(1,(inZone?C.teal:C.rose)+'00');
+    ctx.beginPath();ctx.arc(W-10,y,12,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+    ctx.beginPath();ctx.arc(W-10,y,4,0,Math.PI*2);ctx.fillStyle=inZone?C.teal:C.rose;ctx.fill();
+    exHistory.push({cents:centsFromTarget});
+    if(exHistory.length>80) exHistory.shift();
+    // Scoring
+    if(inZone){
+      if(!exHoldStart) exHoldStart=Date.now();
+      exHoldMs=Date.now()-exHoldStart;
+      const pct=Math.min(1,exHoldMs/HOLD_NEEDED);
+      ctx.fillStyle=C.teal+'44';
+      ctx.fillRect(0,H-6,W*pct,6);
+      if(exHoldMs>=HOLD_NEEDED){
+        exScore++;exStreak++;
+        if(exStreak>exBest) exBest=exStreak;
+        document.getElementById('exScore').textContent=exScore;
+        document.getElementById('exStreak').textContent=exStreak;
+        document.getElementById('exBest').textContent=exBest;
+        document.getElementById('exFeedback').textContent='✓ Matched!';
+        document.getElementById('exFeedback').style.color=C.teal;
+        exHoldStart=null;exHoldMs=0;
+        setTimeout(()=>nextNote(),800);
+      } else {
+        const diff=Math.round(centsFromTarget);
+        document.getElementById('exFeedback').textContent=`Hold… ${diff>0?'+'+diff:diff}¢`;
+        document.getElementById('exFeedback').style.color=C.teal;
+      }
+    } else {
+      exHoldStart=null;exHoldMs=0;exStreak=0;
+      document.getElementById('exStreak').textContent=0;
+      const diff=Math.round(centsFromTarget);
+      document.getElementById('exFeedback').textContent=diff>5?`▼ ${diff}¢ sharp`:`▲ ${Math.abs(diff)}¢ flat`;
+      document.getElementById('exFeedback').style.color=C.rose;
+    }
+  }
+  ctx.textAlign='left';
+}
+
+// Spectrolizer draw (exercise tab)
+function drawSpectrolizer(freqData,sr,fftSize){
+  const ctx=CTX['spectroExCanvas'],W=CTX['spectroExCanvasW']||300,H=CTX['spectroExCanvasH']||80;
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
+  const nBars=60;
+  const loF=80,hiF=5000;
+  const binHz=sr/fftSize;
+  for(let i=0;i<nBars;i++){
+    const frac=i/nBars;
+    const freq=loF*Math.pow(hiF/loF,frac);
+    const bin=Math.round(freq/binHz);
+    const amp=bin<freqData.length?freqData[bin]/255:0;
+    const bW=W/nBars-1;
+    const bH=amp*(H-4);
+    // Highlight target frequency
+    const targetFreq=exTarget?midiToFreq(exTarget):0;
+    const isTarget=targetFreq>0&&Math.abs(freq-targetFreq)<targetFreq*0.03;
+    ctx.fillStyle=isTarget?C.gold:(amp>0.7?C.teal:C.teal+'88');
+    ctx.fillRect(i*(W/nBars),H-bH,bW,bH);
+  }
+}
+
+// ── Vowel space ────────────────────────────────────────────────────────────
+const VOWELS=[
+  {label:"ee",f1:280,f2:2650},{label:"ih",f1:390,f2:2100},{label:"eh",f1:610,f2:1900},
+  {label:"ah",f1:850,f2:1600},{label:"aw",f1:590,f2:880},{label:"oh",f1:450,f2:750},
+  {label:"oo",f1:310,f2:870},{label:"uh",f1:710,f2:1220}
+];
+let vowelHist=[];
+function drawVowelSpace(formants){
+  const ctx=CTX['vowelCanvas'],W=CTX['vowelCanvasW']||260,H=CTX['vowelCanvasH']||180;
+  if(!ctx) return;
+  const f1Y=f1=>H-((f1-200)/700)*(H-40)-20;
+  const f2X=f2=>W-((f2-700)/2300)*(W-40)-20;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=C.border;ctx.lineWidth=0.5;
+  [300,500,700].forEach(f1=>{const y=f1Y(f1);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
+  [1000,1500,2000,2500].forEach(f2=>{const x=f2X(f2);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+  ctx.fillStyle=C.dim;ctx.font='9px monospace';
+  ctx.fillText('← F2',W-28,H-3);ctx.fillText('F1↓',3,10);
   VOWELS.forEach(({label,f1,f2})=>{
-    const x=f2ToX(f2),y=f1ToY(f1);
-    ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2);
-    ctx.fillStyle=C.hi; ctx.fill();
-    ctx.strokeStyle=C.border; ctx.lineWidth=1; ctx.stroke();
-    ctx.fillStyle=C.dim; ctx.font="9px Georgia"; ctx.textAlign="center";
+    const x=f2X(f2),y=f1Y(f1);
+    ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);
+    ctx.fillStyle=C.hi;ctx.fill();ctx.strokeStyle=C.border;ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=C.dim;ctx.font='9px Georgia';ctx.textAlign='center';
     ctx.fillText(label,x,y+3);
   });
   if(vowelHist.length>1){
     ctx.beginPath();
     vowelHist.forEach(({f1,f2},i)=>{
-      const x=f2ToX(f2),y=f1ToY(f1);
+      const x=f2X(f2),y=f1Y(f1);
       if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     });
-    ctx.strokeStyle=C.goldDim; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.strokeStyle=C.goldDim;ctx.lineWidth=1.5;ctx.stroke();
   }
   if(formants&&formants.f1&&formants.f2){
-    const x=f2ToX(formants.f2),y=f1ToY(formants.f1);
-    const grd=ctx.createRadialGradient(x,y,0,x,y,16);
-    grd.addColorStop(0,C.gold+"88"); grd.addColorStop(1,C.gold+"00");
-    ctx.beginPath(); ctx.arc(x,y,16,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fillStyle=C.gold; ctx.fill();
+    const x=f2X(formants.f2),y=f1Y(formants.f1);
+    const grd=ctx.createRadialGradient(x,y,0,x,y,15);
+    grd.addColorStop(0,C.gold+'88');grd.addColorStop(1,C.gold+'00');
+    ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=C.gold;ctx.fill();
   }
-  ctx.textAlign="left";
+  ctx.textAlign='left';
 }
 
-function drawPitchTrace(){
-  const ctx=CTX['pitchCanvas'], W=CTX['pitchCanvasW']||260, H=CTX['pitchCanvasH']||200;
-  if(!ctx) return;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=C.surface; ctx.fillRect(0,0,W,H);
-  const rel=pitchHist.filter(p=>p>0);
-  if(rel.length<2) return;
-  const minP=Math.min(...rel)*0.97,maxP=Math.max(...rel)*1.03;
-  const toY=p=>H-((p-minP)/(maxP-minP))*(H-20)-10;
-  const toX=i=>(i/(pitchHist.length-1))*W;
-  ctx.beginPath();
-  pitchHist.forEach((p,i)=>{const x=toX(i),y=p>0?toY(p):H; if(i===0)ctx.moveTo(x,H); ctx.lineTo(x,y);});
-  ctx.lineTo(W,H); ctx.closePath();
-  const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,C.teal+"55"); grad.addColorStop(1,C.teal+"00");
-  ctx.fillStyle=grad; ctx.fill();
-  ctx.beginPath(); let started=false;
-  pitchHist.forEach((p,i)=>{
-    if(p<=0){started=false;return;}
-    const x=toX(i),y=toY(p);
-    if(!started){ctx.moveTo(x,y);started=true;} else ctx.lineTo(x,y);
-  });
-  ctx.strokeStyle=C.teal; ctx.lineWidth=2; ctx.stroke();
-}
-
+// ── Health trace ───────────────────────────────────────────────────────────
+let healthHist=[];
 function drawHealthTrace(){
-  const ctx=CTX['healthCanvas'], W=CTX['healthCanvasW']||320, H=CTX['healthCanvasH']||160;
+  const ctx=CTX['healthCanvas'],W=CTX['healthCanvasW']||320,H=CTX['healthCanvasH']||130;
   if(!ctx) return;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=C.surface; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
   if(healthHist.length<2) return;
   const drawLine=(key,color,minV,maxV)=>{
-    ctx.beginPath(); let started=false;
+    ctx.beginPath();let started=false;
     healthHist.forEach((h,i)=>{
       const x=(i/(healthHist.length-1))*W;
       const y=H-((h[key]-minV)/(maxV-minV))*(H-20)-10;
-      if(!started){ctx.moveTo(x,y);started=true;} else ctx.lineTo(x,y);
+      if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
     });
-    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
   };
   drawLine('hnr',C.teal,0,40);
   drawLine('jitter',C.gold,0,5);
-  ctx.font="10px monospace"; ctx.fillStyle=C.teal; ctx.fillText("HNR",6,14);
-  ctx.fillStyle=C.gold; ctx.fillText("Jitter",42,14);
+  ctx.font='10px monospace';ctx.fillStyle=C.teal;ctx.fillText('HNR',6,13);
+  ctx.fillStyle=C.gold;ctx.fillText('Jitter',42,13);
 }
 
+// ── Pitch range histogram ──────────────────────────────────────────────────
+let allPitches=[];
 function drawPitchRange(){
-  const ctx=CTX['rangeCanvas'], W=CTX['rangeCanvasW']||320, H=CTX['rangeCanvasH']||110;
+  const ctx=CTX['rangeCanvas'],W=CTX['rangeCanvasW']||320,H=CTX['rangeCanvasH']||95;
   if(!ctx) return;
-  ctx.clearRect(0,0,W,H); ctx.fillStyle=C.surface; ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
   if(allPitches.length<2) return;
   const midis=allPitches.map(p=>Math.round(69+12*Math.log2(p/440)));
   const minM=Math.min(...midis),maxM=Math.max(...midis);
   const range=Math.max(maxM-minM,1);
-  const counts={};
-  midis.forEach(m=>{counts[m]=(counts[m]||0)+1;});
+  const counts={};midis.forEach(m=>{counts[m]=(counts[m]||0)+1;});
   const maxCount=Math.max(...Object.values(counts));
-  const PAD=20, barW=Math.max(4,(W-PAD*2)/range);
-  // Passaggio highlight
+  const PAD=18,barW=Math.max(3,(W-PAD*2)/range);
   const pLo=Math.max(0,((60-minM)/range)*(W-PAD*2)+PAD);
   const pHi=Math.min(W,((72-minM)/range)*(W-PAD*2)+PAD+barW);
   if(pHi>pLo){
-    ctx.fillStyle=C.gold+"18";
-    ctx.fillRect(pLo,0,pHi-pLo,H-20);
-    ctx.fillStyle=C.goldDim; ctx.font="9px monospace"; ctx.textAlign="center";
-    ctx.fillText("passaggio",(pLo+pHi)/2,H-22);
+    ctx.fillStyle=C.gold+'18';ctx.fillRect(pLo,0,pHi-pLo,H-18);
+    ctx.fillStyle=C.goldDim;ctx.font='8px monospace';ctx.textAlign='center';
+    ctx.fillText('passaggio',(pLo+pHi)/2,H-20);
   }
-  // Bars
   for(let m=minM;m<=maxM;m++){
     const x=((m-minM)/range)*(W-PAD*2)+PAD;
-    const bH=((counts[m]||0)/maxCount)*(H-40);
-    ctx.fillStyle=C.teal+"99";
-    ctx.fillRect(x-barW/2+1,H-20-bH,Math.max(2,barW-2),bH);
+    const bH=((counts[m]||0)/maxCount)*(H-34);
+    ctx.fillStyle=C.teal+'99';
+    ctx.fillRect(x-barW/2+1,H-18-bH,Math.max(2,barW-2),bH);
   }
-  // Labels (natural notes only)
-  const names=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
-  const isNatural=m=>!names[((m%12)+12)%12].includes("♯")&&!names[((m%12)+12)%12].includes("♭");
-  ctx.fillStyle=C.dim; ctx.font="9px monospace";
+  const isNatural=m=>!NOTE_NAMES[((m%12)+12)%12].includes('♯')&&!NOTE_NAMES[((m%12)+12)%12].includes('♭');
+  ctx.fillStyle=C.dim;ctx.font='8px monospace';
   for(let m=minM;m<=maxM;m++){
     if(!isNatural(m)) continue;
     const x=((m-minM)/range)*(W-PAD*2)+PAD;
-    ctx.textAlign="center";
-    ctx.fillText(names[((m%12)+12)%12]+Math.floor(m/12-1),x,H-7);
+    ctx.textAlign='center';
+    ctx.fillText(NOTE_NAMES[((m%12)+12)%12]+Math.floor(m/12-1),x,H-6);
   }
-  ctx.textAlign="left";
+  ctx.textAlign='left';
 }
 
-// ── UI update ──────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────
+let audioCtx=null,analyser=null,raf=null,listening=false;
+let pitchHist=[],sessionStart=null;
+const savedSessions=[];
+const last={note:'–',hz:'',cents:'–',centsLabel:'',centsColor:C.dim,
+  vibratoRate:'–',vibratoSub:'',vibratoColor:C.dim,
+  register:{label:'–',color:C.dim,sub:''},f1:0,f2:0,f3:0};
+
+// ── Session panel ──────────────────────────────────────────────────────────
 function updateSessionPanel(){
   const el=document.getElementById('sessionLive');
-  if(allPitches.length<5){el.innerHTML='<div class="session-empty">No data yet — start singing to record a session.</div>';return;}
+  if(allPitches.length<5){el.innerHTML='<div class="session-empty">No data yet.</div>';return;}
   const midis=allPitches.map(p=>69+12*Math.log2(p/440));
   const minM=Math.round(Math.min(...midis)),maxM=Math.round(Math.max(...midis));
-  const names=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
-  const midiToName=m=>names[((m%12)+12)%12]+Math.floor(m/12-1);
   const elapsed=sessionStart?Math.round((Date.now()-sessionStart)/1000):0;
   const mins=Math.floor(elapsed/60),secs=elapsed%60;
   const hnrVals=healthHist.map(h=>h.hnr).filter(v=>v>0);
@@ -639,122 +908,100 @@ function updateSessionPanel(){
   const avgJitter=jitterVals.length?jitterVals.reduce((a,b)=>a+b,0)/jitterVals.length:0;
   el.innerHTML=`
     <div class="stat-row"><div class="stat-key">Duration</div><div class="stat-val">${mins}:${secs.toString().padStart(2,'0')}</div></div>
-    <div class="stat-row"><div class="stat-key">Pitch range</div><div class="stat-val">${midiToName(minM)} – ${midiToName(maxM)}</div></div>
+    <div class="stat-row"><div class="stat-key">Range</div><div class="stat-val">${midiToName(minM)} – ${midiToName(maxM)}</div></div>
     <div class="stat-row"><div class="stat-key">Span</div><div class="stat-val">${maxM-minM} semitones</div></div>
     <div class="stat-row"><div class="stat-key">Avg HNR</div><div class="stat-val" style="color:${avgHNR>20?C.teal:avgHNR>12?C.gold:C.rose}">${avgHNR.toFixed(1)} dB</div></div>
     <div class="stat-row"><div class="stat-key">Avg Jitter</div><div class="stat-val" style="color:${avgJitter<1?C.teal:avgJitter<2?C.gold:C.rose}">${avgJitter.toFixed(2)}%</div></div>
   `;
 }
 
-// ── Last-value memory (show dimmed when silent) ────────────────────────────
-const last = { note:'–', hz:'', cents:'–', centsLabel:'', centsColor:C.dim,
-  vibratoRate:'–', vibratoSub:'', vibratoColor:C.dim,
-  register:{label:'–',color:C.dim,sub:''},
-  f1:0, f2:0, f3:0 };
-
-function updateUI(pitch, formants, vibrato, sf, hnr, jitter, shimmer, tilt, register, freqData){
-  const {note,cents}=freqToNote(pitch);
+// ── Main UI update ─────────────────────────────────────────────────────────
+function updateUI(pitch,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,freqData){
+  const stablePitch=getStablePitch(pitch);
+  const {note,cents}=freqToNote(stablePitch);
   const active=pitch>0;
 
-  // Update last-value memory when active
   if(active){
-    last.note=note; last.hz=`${Math.round(pitch)} Hz`;
-    last.cents=(cents>=0?`+${cents}`:String(cents)); last.centsLabel='cents';
+    last.note=note;last.hz=`${Math.round(pitch)} Hz`;
+    last.cents=(cents>=0?`+${cents}`:String(cents));last.centsLabel='cents';
     last.centsColor=Math.abs(cents)<10?C.teal:Math.abs(cents)<25?C.gold:C.rose;
   }
-  if(vibrato.rate>0){
-    last.vibratoRate=String(vibrato.rate);
-    last.vibratoSub=`Hz · ±${vibrato.extent}¢`;
-    last.vibratoColor=vibrato.present?C.teal:C.dim;
-  }
+  if(vibrato.rate>0){last.vibratoRate=String(vibrato.rate);last.vibratoSub=`Hz · ±${vibrato.extent}¢`;last.vibratoColor=vibrato.present?C.teal:C.dim;}
   if(register.label!=='–') last.register=register;
   if(formants.f1>0) last.f1=formants.f1;
   if(formants.f2>0) last.f2=formants.f2;
   if(formants.f3>0) last.f3=formants.f3;
 
-  // Note — bright when active, dimmed when last value
-  document.getElementById('noteDisplay').textContent=active?last.note:(last.note==='–'?'–':last.note);
+  const dim=a=>active?1:a;
+  document.getElementById('noteDisplay').textContent=last.note;
   document.getElementById('noteDisplay').style.color=active?C.ivory:C.dim;
-  document.getElementById('hzDisplay').textContent=active?last.hz:(last.hz?last.hz:'');
-  document.getElementById('hzDisplay').style.opacity=active?1:0.45;
+  document.getElementById('hzDisplay').textContent=last.hz;
+  document.getElementById('hzDisplay').style.opacity=dim(0.45);
 
-  // Cents
   const cEl=document.getElementById('centsDisplay');
-  cEl.textContent=active?last.cents:(last.cents==='–'?'–':last.cents);
-  cEl.style.color=active?last.centsColor:C.dim;
-  cEl.style.opacity=active?1:0.45;
+  cEl.textContent=last.cents;cEl.style.color=active?last.centsColor:C.dim;cEl.style.opacity=dim(0.45);
   document.getElementById('centsLabel').textContent=last.centsLabel;
 
-  // Vibrato
   const vEl=document.getElementById('vibratoDisplay');
-  vEl.textContent=last.vibratoRate;
-  vEl.style.color=active&&vibrato.rate>0?last.vibratoColor:C.dim;
-  vEl.style.opacity=active?1:0.45;
-  document.getElementById('vibratoSub').textContent=active?last.vibratoSub:(last.vibratoSub?last.vibratoSub:'');
-  document.getElementById('vibratoSub').style.opacity=active?1:0.45;
+  vEl.textContent=last.vibratoRate;vEl.style.color=active?last.vibratoColor:C.dim;vEl.style.opacity=dim(0.45);
+  document.getElementById('vibratoSub').textContent=last.vibratoSub;
+  document.getElementById('vibratoSub').style.opacity=dim(0.45);
 
-  // Register — always show last, dim when silent
-  const rb=document.getElementById('registerBadge');
   const reg=active?register:last.register;
-  const regOpacity=active?1:0.45;
-  rb.innerHTML=`<span class="register-badge" style="background:${reg.color}22;border:1px solid ${reg.color};color:${reg.color};opacity:${regOpacity}">${reg.label}</span>`;
+  document.getElementById('registerBadge').innerHTML=`<span class="register-badge" style="background:${reg.color}22;border:1px solid ${reg.color};color:${reg.color};opacity:${dim(0.45)}">${reg.label}</span>`;
   document.getElementById('registerSub').textContent=reg.sub;
-  document.getElementById('registerSub').style.opacity=regOpacity;
+  document.getElementById('registerSub').style.opacity=dim(0.45);
 
-  // Singer's formant
   const sfLevel=Math.min(100,(sf/80)*100);
   const sfColor=sfLevel>65?C.gold:sfLevel>35?C.teal:C.dim;
-  document.getElementById('sfBar').style.width=sfLevel+"%";
+  document.getElementById('sfBar').style.width=sfLevel+'%';
   document.getElementById('sfBar').style.background=`linear-gradient(90deg,${C.tealDim},${sfColor})`;
-  document.getElementById('sfStatus').textContent=sfLevel>65?"Strong":sfLevel>35?"Moderate":"Developing";
+  document.getElementById('sfStatus').textContent=sfLevel>65?'Strong':sfLevel>35?'Moderate':'Developing';
   document.getElementById('sfStatus').style.color=sfColor;
 
-  // Formants — show last value dimmed when silent
   const setF=(id,uid,val,lastVal)=>{
     const el=document.getElementById(id);
     const show=val>0?val:lastVal;
-    el.textContent=show>0?Math.round(show):"–";
+    el.textContent=show>0?Math.round(show):'–';
     el.style.color=show>0?C.ivory:C.dim;
-    el.style.opacity=(val>0||!active)?1:(lastVal>0?0.45:1);
-    document.getElementById(uid).textContent=show>0?"Hz":"";
+    el.style.opacity=active||!lastVal?1:0.45;
+    document.getElementById(uid).textContent=show>0?'Hz':'';
   };
   setF('f1Val','f1Unit',formants.f1,last.f1);
   setF('f2Val','f2Unit',formants.f2,last.f2);
   setF('f3Val','f3Unit',formants.f3,last.f3);
 
-  // Health tab
+  // Health gauges
   const setGauge=(barId,valId,val,unit,lo,hi,invert=false)=>{
     const pct=Math.min(100,Math.max(0,(val-lo)/(hi-lo)*100));
     const good=invert?val<(lo+(hi-lo)*0.4):val>(lo+(hi-lo)*0.6);
     const warn=invert?val>(lo+(hi-lo)*0.6):val<(lo+(hi-lo)*0.3);
     const color=good?C.teal:warn?C.rose:C.gold;
-    document.getElementById(barId).style.width=pct+"%";
+    document.getElementById(barId).style.width=pct+'%';
     document.getElementById(barId).style.background=color;
-    document.getElementById(valId).textContent=active?`${val.toFixed(1)}${unit}`:"–";
+    document.getElementById(valId).textContent=active?`${val.toFixed(1)}${unit}`:'–';
     document.getElementById(valId).style.color=active?color:C.dim;
   };
   if(active){
-    setGauge('hnrBar','hnrVal',hnr," dB",0,40);
-    setGauge('jitterBar','jitterVal',jitter,"%",0,5,true);
-    setGauge('shimmerBar','shimmerVal',shimmer,"%",0,10,true);
-    // Tilt: -60 to 0 dB/oct. Flatter (closer to 0) = brighter. Map -60..0 → 0..100%
+    setGauge('hnrBar','hnrVal',hnr,' dB',0,40);
+    setGauge('jitterBar','jitterVal',jitter,'%',0,5,true);
+    setGauge('shimmerBar','shimmerVal',shimmer,'%',0,10,true);
     const tiltPct=Math.min(100,Math.max(0,(tilt+60)/60*100));
     const tiltColor=tiltPct>60?C.teal:tiltPct>30?C.gold:C.dim;
-    document.getElementById('tiltBar').style.width=tiltPct+"%";
+    document.getElementById('tiltBar').style.width=tiltPct+'%';
     document.getElementById('tiltBar').style.background=tiltColor;
     document.getElementById('tiltVal').textContent=`${Math.round(tilt)} dB/oct`;
     document.getElementById('tiltVal').style.color=tiltColor;
   }
 
-  // Draw
   drawVowelSpace(active?formants:null);
-  drawPitchTrace();
-  drawHealthTrace();
-  drawPitchRange();
-  updateSessionPanel();
+  if(freqData) pushSpectroColumn(freqData,audioCtx?.sampleRate||44100,analyser?.fftSize||2048,'spectroCanvas');
+  drawHealthTrace();drawPitchRange();updateSessionPanel();
+  drawExercise(pitch);
+  if(freqData) drawSpectrolizer(freqData,audioCtx?.sampleRate||44100,analyser?.fftSize||2048);
 }
 
-// ── Main analysis loop ─────────────────────────────────────────────────────
+// ── Analysis loop ─────────────────────────────────────────────────────────
 function analyse(){
   if(!analyser) return;
   const fftSize=analyser.fftSize;
@@ -764,8 +1011,8 @@ function analyse(){
   const pitch=autoCorrelate(timeData,sr);
   let formants={f1:0,f2:0,f3:0},sf=0,vibrato={rate:0,extent:0,present:false};
   let hnr=0,jitter=0,shimmer=0,tilt=0;
-  let register={label:"–",color:C.dim,sub:""};
-  let freqData=new Uint8Array(analyser.frequencyBinCount);
+  let register={label:'–',color:C.dim,sub:''};
+  const freqData=new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(freqData);
 
   if(pitch>60&&pitch<1400){
@@ -782,10 +1029,8 @@ function analyse(){
     shimmer=calcShimmer(Array.from(timeData),sr,pitch);
     tilt=calcSpectralTilt(freqData,sr,fftSize);
     register=detectRegister(pitch,freqData,sr,fftSize);
-    // Record health every ~10 frames
     if(allPitches.length%10===0) healthHist=[...healthHist.slice(-120),{hnr,jitter,shimmer}];
   }
-
   updateUI(pitch>60&&pitch<1400?pitch:0,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,freqData);
   raf=requestAnimationFrame(analyse);
 }
@@ -796,51 +1041,49 @@ async function startListening(){
     const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
     audioCtx=new AudioContext();
     analyser=audioCtx.createAnalyser();
-    analyser.fftSize=2048; analyser.smoothingTimeConstant=0.4;
+    analyser.fftSize=2048;analyser.smoothingTimeConstant=0.5;
     audioCtx.createMediaStreamSource(stream).connect(analyser);
-    listening=true; sessionStart=Date.now();
-    document.getElementById('listenBtn').textContent="◼ Stop";
+    listening=true;sessionStart=Date.now();
+    document.getElementById('listenBtn').textContent='◼ Stop';
     document.getElementById('listenBtn').classList.add('active');
     document.getElementById('idle').style.display='none';
     document.getElementById('error').style.display='none';
     raf=requestAnimationFrame(analyse);
   }catch(e){
     const err=document.getElementById('error');
-    err.textContent="Microphone access denied. Please allow microphone access and try again.";
+    err.textContent='Microphone access denied. Please allow microphone access and try again.';
     err.style.display='block';
   }
 }
 
 function stopListening(){
-  // Save session
   if(allPitches.length>10){
     const midis=allPitches.map(p=>Math.round(69+12*Math.log2(p/440)));
-    const names=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
-    const mToN=m=>names[((m%12)+12)%12]+Math.floor(m/12-1);
     const minM=Math.min(...midis),maxM=Math.max(...midis);
     const hnrVals=healthHist.map(h=>h.hnr).filter(v=>v>0);
     const avgHNR=hnrVals.length?hnrVals.reduce((a,b)=>a+b,0)/hnrVals.length:0;
     const elapsed=Math.round((Date.now()-sessionStart)/1000);
     savedSessions.unshift({
       date:new Date().toLocaleDateString(),time:new Date().toLocaleTimeString(),
-      range:`${mToN(minM)}–${mToN(maxM)}`,span:maxM-minM,
-      duration:elapsed,avgHNR:avgHNR.toFixed(1),notes:allPitches.length
+      range:`${midiToName(minM)}–${midiToName(maxM)}`,span:maxM-minM,
+      duration:elapsed,avgHNR:avgHNR.toFixed(1)
     });
     renderSessions();
   }
   cancelAnimationFrame(raf);
-  audioCtx?.close(); audioCtx=null; analyser=null;
-  pitchHist=[]; vowelHist=[]; healthHist=[]; allPitches=[];
-  periodHist.length=0;
-  fmtSmooth.f1=[]; fmtSmooth.f2=[]; fmtSmooth.f3=[];
+  audioCtx?.close();audioCtx=null;analyser=null;
+  pitchHist=[];vowelHist=[];healthHist=[];allPitches=[];
+  periodHist.length=0;recentPitches.length=0;
+  fmtSmooth.f1=[];fmtSmooth.f2=[];fmtSmooth.f3=[];
+  spectroBuffer.data=null;
   Object.assign(last,{note:'–',hz:'',cents:'–',centsLabel:'',centsColor:C.dim,
     vibratoRate:'–',vibratoSub:'',vibratoColor:C.dim,
     register:{label:'–',color:C.dim,sub:''},f1:0,f2:0,f3:0});
-  listening=false; sessionStart=null;
-  document.getElementById('listenBtn').textContent="◉ Listen";
+  listening=false;sessionStart=null;
+  document.getElementById('listenBtn').textContent='◉ Listen';
   document.getElementById('listenBtn').classList.remove('active');
   document.getElementById('idle').style.display='block';
-  updateUI(0,{f1:0,f2:0,f3:0},{rate:0,extent:0,present:false},0,0,0,0,0,{label:"–",color:C.dim,sub:""},null);
+  updateUI(0,{f1:0,f2:0,f3:0},{rate:0,extent:0,present:false},0,0,0,0,0,{label:'–',color:C.dim,sub:''},null);
 }
 
 function renderSessions(){
@@ -849,7 +1092,7 @@ function renderSessions(){
   el.innerHTML=savedSessions.map(s=>`
     <div class="session-entry">
       <div class="session-date">${s.date} · ${s.time}</div>
-      <div class="stat-row"><div class="stat-key">Range</div><div class="stat-val">${s.range} (${s.span} semitones)</div></div>
+      <div class="stat-row"><div class="stat-key">Range</div><div class="stat-val">${s.range} (${s.span} st)</div></div>
       <div class="stat-row"><div class="stat-key">Duration</div><div class="stat-val">${Math.floor(s.duration/60)}:${(s.duration%60).toString().padStart(2,'0')}</div></div>
       <div class="stat-row"><div class="stat-key">Avg HNR</div><div class="stat-val" style="color:${s.avgHNR>20?C.teal:s.avgHNR>12?C.gold:C.rose}">${s.avgHNR} dB</div></div>
     </div>
@@ -858,25 +1101,28 @@ function renderSessions(){
 
 document.getElementById('exportBtn').addEventListener('click',()=>{
   if(!savedSessions.length) return;
-  const rows=[['Date','Time','Range','Span (semitones)','Duration (s)','Avg HNR (dB)']];
+  const rows=[['Date','Time','Range','Span','Duration (s)','Avg HNR (dB)']];
   savedSessions.forEach(s=>rows.push([s.date,s.time,s.range,s.span,s.duration,s.avgHNR]));
   const csv=rows.map(r=>r.join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='voice-sessions.csv'; a.click();
+  a.download='voice-sessions.csv';a.click();
 });
 
 document.getElementById('listenBtn').addEventListener('click',()=>{
   if(listening) stopListening(); else startListening();
 });
 
-// Initial setup — defer to after layout is painted
-function redrawAll() {
+// ── Init ───────────────────────────────────────────────────────────────────
+function redrawAll(){
   setupAllCanvases();
-  drawVowelSpace(null); drawPitchTrace(); drawHealthTrace(); drawPitchRange();
+  drawVowelSpace(null);drawHealthTrace();drawPitchRange();
 }
 requestAnimationFrame(()=>requestAnimationFrame(redrawAll));
-window.addEventListener('resize', redrawAll);
+window.addEventListener('resize',redrawAll);
+
+// Start with a random target note
+setExTarget(64); // E4 default
 </script>
 </body>
 </html>
