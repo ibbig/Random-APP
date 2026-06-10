@@ -55,7 +55,7 @@ canvas { display: block; width: 100%; border-radius: 4px; }
 .ex-note { font-size: 64px; font-family: monospace; font-weight: normal; line-height: 1; }
 .ex-hz { font-size: 13px; color: #9a9488; margin-top: 4px; }
 #spectroCanvas { height: 160px; }
-#exerciseCanvas { height: 120px; }
+#exerciseCanvas { height: 200px; }
 .ex-score { display: flex; justify-content: center; gap: 24px; margin: 10px 0; }
 .ex-score-val { text-align: center; }
 .ex-score-num { font-size: 32px; font-family: monospace; color: #c9a84c; }
@@ -687,54 +687,88 @@ function setExTarget(midi){
   document.getElementById('exFeedback').style.color=C.dim;
 }
 
-// Exercise canvas draw
+// Exercise canvas draw — absolute pitch space
 const exHistory=[];
 function drawExercise(pitch){
   const ctx=CTX['exerciseCanvas'],W=CTX['exerciseCanvasW']||300,H=CTX['exerciseCanvasH']||120;
   if(!ctx||!exTarget) return;
   ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
-  // Target line in center
-  const targetY=H/2;
-  ctx.strokeStyle=C.gold+'66';ctx.lineWidth=1;ctx.setLineDash([4,4]);
-  ctx.beginPath();ctx.moveTo(0,targetY);ctx.lineTo(W,targetY);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle=C.gold;ctx.font='9px monospace';ctx.textAlign='right';
-  ctx.fillText(midiToName(exTarget),W-4,targetY-3);
-  // ±25 cent zone
-  const semH=H/8;
-  ctx.fillStyle=C.gold+'18';
-  ctx.fillRect(0,targetY-semH*0.5,W,semH);
-  // History line
-  if(exHistory.length>1){
-    ctx.beginPath();
-    exHistory.forEach(({cents:c},i)=>{
-      const x=(i/(exHistory.length-1))*W;
-      const y=targetY-c*(H/200);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    });
-    ctx.strokeStyle=C.teal;ctx.lineWidth=2;ctx.stroke();
+
+  // Show ±6 semitones around target so scale adapts to target position
+  const SEMI_RANGE=6;
+  const midiMin=exTarget-SEMI_RANGE;
+  const midiMax=exTarget+SEMI_RANGE;
+  const LABEL_W=28;
+  const plotW=W-LABEL_W;
+
+  const midiToY=m=>H-((m-midiMin)/(midiMax-midiMin))*H;
+
+  // Grid lines and note labels for each semitone in range
+  for(let m=midiMin;m<=midiMax;m++){
+    const y=midiToY(m);
+    const isNatural=!NOTE_NAMES[((m%12)+12)%12].includes('♯')&&!NOTE_NAMES[((m%12)+12)%12].includes('♭');
+    const isTarget=m===exTarget;
+    // Grid line
+    ctx.strokeStyle=isTarget?C.gold+'55':C.border;
+    ctx.lineWidth=isTarget?1:0.5;
+    ctx.setLineDash(isTarget?[]:[ 2,4]);
+    ctx.beginPath();ctx.moveTo(LABEL_W,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.setLineDash([]);
+    // Label — show all natural notes and the target even if sharp/flat
+    if(isNatural||isTarget){
+      ctx.fillStyle=isTarget?C.gold:C.dim;
+      ctx.font=isTarget?'bold 9px monospace':'9px monospace';
+      ctx.textAlign='right';
+      ctx.fillText(NOTE_NAMES[((m%12)+12)%12]+Math.floor(m/12-1),LABEL_W-3,y+3);
+    }
   }
+
+  // ±25 cent zone around target (gold band)
+  const centH=(H/(midiMax-midiMin))*(25/100);
+  const targetY=midiToY(exTarget);
+  ctx.fillStyle=C.gold+'1a';
+  ctx.fillRect(LABEL_W,targetY-centH,plotW,centH*2);
+
+  // Target line
+  ctx.strokeStyle=C.gold+'99';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(LABEL_W,targetY);ctx.lineTo(W,targetY);ctx.stroke();
+
+  // History trail — stored as actual midi values now
+  if(exHistory.length>1){
+    ctx.beginPath();let started=false;
+    exHistory.forEach((midi,i)=>{
+      if(midi<=0){started=false;return;}
+      const x=LABEL_W+(i/(exHistory.length-1))*plotW;
+      const y=midiToY(midi);
+      if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle=C.teal+'cc';ctx.lineWidth=2;ctx.stroke();
+  }
+
   // Current dot
   if(pitch>0){
-    const {cents}=freqToNote(pitch);
-    const targetFreq=midiToFreq(exTarget);
-    const centsFromTarget=1200*Math.log2(pitch/targetFreq);
-    const y=targetY-centsFromTarget*(H/200);
+    const currentMidi=69+12*Math.log2(pitch/440);
+    const centsFromTarget=1200*Math.log2(pitch/midiToFreq(exTarget));
     const inZone=Math.abs(centsFromTarget)<25;
-    const grd=ctx.createRadialGradient(W-10,y,0,W-10,y,12);
-    grd.addColorStop(0,(inZone?C.teal:C.rose)+'cc');
+    const y=midiToY(currentMidi);
+    const dotX=W-10;
+
+    const grd=ctx.createRadialGradient(dotX,y,0,dotX,y,14);
+    grd.addColorStop(0,(inZone?C.teal:C.rose)+'bb');
     grd.addColorStop(1,(inZone?C.teal:C.rose)+'00');
-    ctx.beginPath();ctx.arc(W-10,y,12,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
-    ctx.beginPath();ctx.arc(W-10,y,4,0,Math.PI*2);ctx.fillStyle=inZone?C.teal:C.rose;ctx.fill();
-    exHistory.push({cents:centsFromTarget});
+    ctx.beginPath();ctx.arc(dotX,y,14,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+    ctx.beginPath();ctx.arc(dotX,y,5,0,Math.PI*2);ctx.fillStyle=inZone?C.teal:C.rose;ctx.fill();
+
+    exHistory.push(currentMidi);
     if(exHistory.length>80) exHistory.shift();
-    // Scoring
+
+    // Hold progress bar at bottom
     if(inZone){
       if(!exHoldStart) exHoldStart=Date.now();
       exHoldMs=Date.now()-exHoldStart;
       const pct=Math.min(1,exHoldMs/HOLD_NEEDED);
-      ctx.fillStyle=C.teal+'44';
-      ctx.fillRect(0,H-6,W*pct,6);
+      ctx.fillStyle=C.teal+'33';ctx.fillRect(LABEL_W,H-5,plotW,5);
+      ctx.fillStyle=C.teal+'99';ctx.fillRect(LABEL_W,H-5,plotW*pct,5);
       if(exHoldMs>=HOLD_NEEDED){
         exScore++;exStreak++;
         if(exStreak>exBest) exBest=exStreak;
@@ -754,9 +788,12 @@ function drawExercise(pitch){
       exHoldStart=null;exHoldMs=0;exStreak=0;
       document.getElementById('exStreak').textContent=0;
       const diff=Math.round(centsFromTarget);
-      document.getElementById('exFeedback').textContent=diff>5?`▼ ${diff}¢ sharp`:`▲ ${Math.abs(diff)}¢ flat`;
+      document.getElementById('exFeedback').textContent=diff>0?`↓ ${diff}¢ sharp`:`↑ ${Math.abs(diff)}¢ flat`;
       document.getElementById('exFeedback').style.color=C.rose;
     }
+  } else {
+    exHistory.push(0);
+    if(exHistory.length>80) exHistory.shift();
   }
   ctx.textAlign='left';
 }
