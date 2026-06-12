@@ -66,6 +66,13 @@ canvas { display: block; width: 100%; border-radius: 4px; }
 .ex-btn:hover { background: rgba(201,168,76,0.2); }
 .snap-btn { background: rgba(78,184,160,0.1); border: 1px solid #4eb8a0; color: #4eb8a0; border-radius: 4px; padding: 5px 12px; font-family: Georgia, serif; font-size: 11px; cursor: pointer; }
 .snap-frozen { background: rgba(201,168,76,0.15); border-color: #c9a84c; color: #c9a84c; }
+.test-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #2e2b4a; gap: 10px; }
+.test-row:last-child { border-bottom: none; }
+.test-name { font-size: 11px; color: #f5f0e8; flex: 1; }
+.test-vals { font-size: 10px; color: #9a9488; font-family: monospace; text-align: right; }
+.test-pass { color: #4eb8a0; font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+.test-fail { color: #c4607a; font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+.test-summary { font-size: 12px; padding: 8px 0; border-bottom: 1px solid #2e2b4a; margin-bottom: 4px; font-family: monospace; }
 @media (max-width: 480px) {
   .grid4 { grid-template-columns: 1fr 1fr; }
   .grid3 { grid-template-columns: 1fr 1fr; }
@@ -84,10 +91,27 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   <div class="tab" data-tab="health">Health</div>
   <div class="tab" data-tab="exercise">Exercise</div>
   <div class="tab" data-tab="session">Session</div>
+  <div class="tab" data-tab="test">Test</div>
 </div>
 
 <!-- ── LIVE ── -->
 <div class="tab-panel active" id="tab-live">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;flex-wrap:wrap;gap:6px">
+      <div class="card-label" style="margin-bottom:0">Mic Input Level</div>
+      <label style="font-size:10px;color:#9a9488;display:flex;align-items:center;gap:5px">
+        Averaging:
+        <select id="avgWindowSelect" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:3px 6px;font-family:monospace;font-size:10px">
+          <option value="250">0.25s</option>
+          <option value="500" selected>0.5s</option>
+          <option value="1000">1s</option>
+          <option value="2000">2s</option>
+        </select>
+      </label>
+    </div>
+    <div class="bar-bg" style="height:8px"><div class="bar-fill" id="micBar" style="width:0%;background:#4eb8a0"></div></div>
+    <div class="hint"><span id="micStatus">No input detected</span> — confirms the mic is receiving sound, independent of pitch/note detection above.</div>
+  </div>
   <div class="grid4">
     <div class="card" style="margin-bottom:0">
       <div class="card-label">Note</div>
@@ -108,6 +132,7 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       <div class="card-label">Register</div>
       <div style="margin-top:3px" id="registerBadge"><span style="color:#9a9488;font-size:12px">–</span></div>
       <div class="sub" id="registerSub"></div>
+      <div class="ref" id="registerDebug" style="margin-top:3px"></div>
     </div>
   </div>
   <div style="margin-bottom:9px"></div>
@@ -306,6 +331,30 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   </div>
 </div>
 
+<!-- ── TEST ── -->
+<div class="tab-panel" id="tab-test">
+  <div class="card">
+    <div class="card-label">Self-Test Suite</div>
+    <div class="hint" style="margin-bottom:8px">
+      Generates synthetic tones and vowel-like signals with known pitch, formant, and harmonic
+      properties (no microphone needed), runs them through the same detectors used live, and
+      checks the output against expected values. Useful for verifying the analysis pipeline
+      after any code changes, on any device or browser.
+    </div>
+    <button class="export-btn" id="runTestsBtn" style="background:rgba(201,168,76,0.1);border-color:#c9a84c;color:#c9a84c">Run Self-Test</button>
+  </div>
+  <div class="card" id="testResultsCard" style="display:none">
+    <div class="card-label">Results</div>
+    <div id="testResults"></div>
+    <div class="hint" style="margin-top:8px">
+      Tolerances are intentionally generous (formants ±20–25%, pitch ±2%) because the synthetic
+      signals are simplified approximations of real voices. A failing test indicates the
+      detector is fundamentally broken, not that real-world readings will be off by exactly
+      that much.
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Colors ─────────────────────────────────────────────────────────────────
 const C={bg:"#0f0e17",surface:"#1a1828",hi:"#242236",border:"#2e2b4a",
@@ -394,9 +443,32 @@ function smoothF(key,val,n=6){
   return fmtSmooth[key].reduce((a,b)=>a+b,0)/fmtSmooth[key].length;
 }
 function findFormants(sig,sr,order=14){
-  const pre=new Float32Array(sig.length);
-  pre[0]=sig[0];
-  for(let i=1;i<sig.length;i++) pre[i]=sig[i]-0.97*sig[i-1];
+  // LPC formant resolution depends on Nyquist/order ratio. At typical mic
+  // sample rates (44.1/48kHz) with a low order, pole pairs are spread too
+  // thin to separate F1 from F2. Downsample to ~11kHz first so the same
+  // order concentrates resolution in the 0-5.5kHz range where formants live.
+  const targetSr=11025;
+  const factor=Math.max(1,Math.round(sr/targetSr));
+  const decSr=sr/factor;
+  let dec;
+  if(factor>1){
+    // Cascaded one-pole lowpass = steep anti-aliasing filter before downsampling
+    const cutoff=decSr*0.45;
+    const dt=1/sr, alpha=dt/((1/(2*Math.PI*cutoff))+dt);
+    let filt=sig;
+    for(let p=0;p<4;p++){
+      const next=new Float32Array(filt.length);
+      next[0]=filt[0];
+      for(let i=1;i<filt.length;i++) next[i]=next[i-1]+alpha*(filt[i]-next[i-1]);
+      filt=next;
+    }
+    dec=new Float32Array(Math.floor(filt.length/factor));
+    for(let i=0;i<dec.length;i++) dec[i]=filt[i*factor];
+  } else dec=sig;
+
+  const pre=new Float32Array(dec.length);
+  pre[0]=dec[0];
+  for(let i=1;i<dec.length;i++) pre[i]=dec[i]-0.97*dec[i-1];
   const win=pre.map((v,i)=>v*(0.54-0.46*Math.cos(2*Math.PI*i/(pre.length-1))));
   const a=lpc(win,order);
   const nP=1024,spec=new Float32Array(nP);
@@ -405,28 +477,33 @@ function findFormants(sig,sr,order=14){
     for(let j=0;j<=order;j++){re+=a[j]*Math.cos(j*w);im+=a[j]*Math.sin(j*w);}
     const m=re*re+im*im;spec[k]=m<1e-10?0:1/m;
   }
+  const nyq=decSr/2;
   const peaks=[];
   for(let k=2;k<nP/2-2;k++){
-    if(spec[k]>spec[k-1]&&spec[k]>spec[k+1]&&spec[k]>spec[k-2]&&spec[k]>spec[k+2]){
-      const freq=(k/nP)*sr;
-      if(freq<200||freq>4500) continue;
+    if(spec[k]>spec[k-1]&&spec[k]>spec[k+1]){
+      const freq=(k/nP)*decSr;
+      if(freq<150||freq>nyq*0.95) continue;
       let bwL=k,bwR=k;const half=spec[k]*0.5;
       while(bwL>0&&spec[bwL]>half)bwL--;
       while(bwR<nP/2&&spec[bwR]>half)bwR++;
-      if(((bwR-bwL)/nP)*sr<20) continue;
+      const bwHz=((bwR-bwL)/nP)*decSr;
+      if(bwHz<20||bwHz>nyq) continue;
       const lMin=Math.min(...Array.from(spec.slice(Math.max(0,k-30),k)),...Array.from(spec.slice(k+1,Math.min(nP/2,k+31))));
-      if((spec[k]-lMin)/spec[k]<0.15) continue;
-      peaks.push({freq,power:spec[k],prom:(spec[k]-lMin)/spec[k]});
+      const prom=(spec[k]-lMin)/spec[k];
+      if(prom<0.1) continue;
+      peaks.push({freq,prom});
     }
   }
-  const bands=[{lo:200,hi:1100},{lo:700,hi:2800},{lo:1800,hi:4000}];
-  const fmts=bands.map(({lo,hi})=>{
-    const inB=peaks.filter(p=>p.freq>=lo&&p.freq<=hi);
-    if(!inB.length) return 0;
-    return inB.sort((a,b)=>b.prom-a.prom)[0].freq;
+  // Formants occur in ascending frequency order — pick the lowest three
+  // resolvable peaks, merging any that are implausibly close together.
+  peaks.sort((a,b)=>a.freq-b.freq);
+  const merged=[];
+  peaks.forEach(p=>{
+    if(merged.length&&p.freq-merged[merged.length-1].freq<100){
+      if(p.prom>merged[merged.length-1].prom) merged[merged.length-1]=p;
+    } else merged.push(p);
   });
-  if(fmts[1]&&fmts[0]&&fmts[1]<=fmts[0]) fmts[1]=0;
-  if(fmts[2]&&fmts[1]&&fmts[2]<=fmts[1]) fmts[2]=0;
+  const fmts=[merged[0]?.freq||0, merged[1]?.freq||0, merged[2]?.freq||0];
   return{f1:Math.round(smoothF('f1',fmts[0])),f2:Math.round(smoothF('f2',fmts[1])),f3:Math.round(smoothF('f3',fmts[2]))};
 }
 
@@ -511,7 +588,7 @@ function calcSpectralTilt(freqData,sr,fftSize){
 // Uses H1-H2 difference (a validated acoustic correlate of register)
 // plus pitch range heuristics. Falsetto has very weak H2 relative to H1.
 function detectRegister(pitch,freqData,sr,fftSize){
-  if(pitch<=0) return{label:"–",color:C.dim,sub:""};
+  if(pitch<=0) return{label:"–",color:C.dim,sub:"",debug:""};
   const binHz=sr/fftSize;
   // Sample energy around each harmonic (±1 bin)
   function harmonicEnergy(n){
@@ -528,25 +605,26 @@ function detectRegister(pitch,freqData,sr,fftSize){
   // Overall harmonic richness (chest has more upper harmonics)
   const upperMean=(h3+h4)/2;
   const {midi}=freqToNote(pitch);
+  const debug=`H1−H2=${h1h2db.toFixed(1)}dB · H1=${h1} H2=${h2} H3=${h3} H4=${h4} · midi=${midi}`;
 
   // Falsetto: H1 dominates strongly (h1h2db > 6dB), typically above C4
   if(h1h2db>8&&midi>60){
-    return{label:"Falsetto",color:"#a07dd6",sub:"H1 dominant, weak upper harmonics"};
+    return{label:"Falsetto",color:"#a07dd6",sub:"H1 dominant, weak upper harmonics",debug};
   }
   // Head voice: H1 slightly dominant, high pitch
   if(h1h2db>3&&midi>65){
-    return{label:"Head",color:C.teal,sub:"upper register, H1 prominent"};
+    return{label:"Head",color:C.teal,sub:"upper register, H1 prominent",debug};
   }
   // Chest: H2 and upper harmonics strong
   if(h1h2db<-2&&upperMean>40){
-    return{label:"Chest",color:C.gold,sub:"lower register, H2 dominant"};
+    return{label:"Chest",color:C.gold,sub:"lower register, H2 dominant",debug};
   }
   // Passaggio zone
   if(midi>=58&&midi<=68){
-    return{label:"Passaggio",color:C.rose,sub:"register transition zone"};
+    return{label:"Passaggio",color:C.rose,sub:"register transition zone",debug};
   }
   // Mixed
-  return{label:"Mixed",color:"#88b4d0",sub:"balanced harmonic structure"};
+  return{label:"Mixed",color:"#88b4d0",sub:"balanced harmonic structure",debug};
 }
 
 // ── Stable tuning (lowest-variance window) ────────────────────────────────
@@ -988,6 +1066,8 @@ function updateUI(pitch,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,fre
   document.getElementById('registerBadge').innerHTML=`<span class="register-badge" style="background:${reg.color}22;border:1px solid ${reg.color};color:${reg.color};opacity:${dim(0.45)}">${reg.label}</span>`;
   document.getElementById('registerSub').textContent=reg.sub;
   document.getElementById('registerSub').style.opacity=dim(0.45);
+  document.getElementById('registerDebug').textContent=reg.debug||'';
+  document.getElementById('registerDebug').style.opacity=dim(0.45);
 
   const sfLevel=Math.min(100,(sf/80)*100);
   const sfColor=sfLevel>65?C.gold:sfLevel>35?C.teal:C.dim;
@@ -1038,6 +1118,52 @@ function updateUI(pitch,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,fre
   if(freqData) drawSpectrolizer(freqData,audioCtx?.sampleRate||44100,analyser?.fftSize||2048);
 }
 
+// ── Display smoothing (rolling averages, adjustable window) ────────────────
+// Raw per-frame DSP values are noisy; teachers asked for values that settle
+// rather than flicker, and to be able to choose how much averaging is applied.
+// Each entry stores {val,time} so the window is time-based (ms), independent
+// of frame rate (which varies a lot across devices).
+let AVG_WINDOW_MS=500;
+document.getElementById('avgWindowSelect').addEventListener('change',e=>{
+  AVG_WINDOW_MS=parseInt(e.target.value);
+});
+const smoothBuf={f1:[],f2:[],f3:[],sf:[],hnr:[],jitter:[],shimmer:[],tilt:[]};
+function pushSmooth(key,val){
+  if(val<=0) return;
+  const now=Date.now();
+  smoothBuf[key].push({val,t:now});
+  const cutoff=now-AVG_WINDOW_MS;
+  while(smoothBuf[key].length>1&&smoothBuf[key][0].t<cutoff) smoothBuf[key].shift();
+}
+function avgSmooth(key,fallback=0){
+  const arr=smoothBuf[key];
+  if(!arr.length) return fallback;
+  return arr.reduce((a,b)=>a+b.val,0)/arr.length;
+}
+function resetSmooth(){
+  Object.keys(smoothBuf).forEach(k=>smoothBuf[k]=[]);
+  registerBuf.length=0;
+}
+// Register uses majority vote since it's categorical, not numeric
+const registerBuf=[];
+function pushRegister(reg){
+  if(!reg||reg.label==='–') return;
+  const now=Date.now();
+  registerBuf.push({reg,t:now});
+  const cutoff=now-AVG_WINDOW_MS;
+  while(registerBuf.length>1&&registerBuf[0].t<cutoff) registerBuf.shift();
+}
+function modeRegister(){
+  if(!registerBuf.length) return{label:'–',color:C.dim,sub:''};
+  const counts={};
+  registerBuf.forEach(({reg})=>counts[reg.label]=(counts[reg.label]||0)+1);
+  const topLabel=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  for(let i=registerBuf.length-1;i>=0;i--) if(registerBuf[i].reg.label===topLabel) return registerBuf[i].reg;
+  return registerBuf[registerBuf.length-1].reg;
+}
+
+
+
 // ── Analysis loop ─────────────────────────────────────────────────────────
 function analyse(){
   if(!analyser) return;
@@ -1045,6 +1171,19 @@ function analyse(){
   const timeData=new Float32Array(fftSize);
   analyser.getFloatTimeDomainData(timeData);
   const sr=audioCtx.sampleRate;
+
+  // Mic input level — RMS of raw signal, independent of pitch/voice detection.
+  // This is the most basic "is the mic picking anything up at all" check.
+  let sumSq=0; for(let i=0;i<timeData.length;i++) sumSq+=timeData[i]*timeData[i];
+  const rms=Math.sqrt(sumSq/timeData.length);
+  const micDb=rms>0?20*Math.log10(rms):-100;
+  const micPct=Math.max(0,Math.min(100,(micDb+60)/60*100)); // -60dB..0dB -> 0..100%
+  const micBar=document.getElementById('micBar');
+  const micStatus=document.getElementById('micStatus');
+  micBar.style.width=micPct+'%';
+  micBar.style.background=micPct>3?(micPct>60?C.gold:C.teal):C.dim;
+  micStatus.textContent=rms<0.0005?'No input detected — check mic permission/selection':`Input level: ${micDb.toFixed(0)} dB`;
+
   const pitch=autoCorrelate(timeData,sr);
   let formants={f1:0,f2:0,f3:0},sf=0,vibrato={rate:0,extent:0,present:false};
   let hnr=0,jitter=0,shimmer=0,tilt=0;
@@ -1056,7 +1195,6 @@ function analyse(){
     pitchHist=[...pitchHist.slice(-80),pitch];
     allPitches=[...allPitches,pitch];
     formants=findFormants(Array.from(timeData),sr);
-    if(formants.f1&&formants.f2) vowelHist=[...vowelHist.slice(-60),{f1:formants.f1,f2:formants.f2}];
     const binHz=sr/fftSize;
     const lo=Math.floor(2500/binHz),hi=Math.floor(3200/binHz);
     sf=freqData.slice(lo,hi).reduce((a,b)=>a+b,0)/(hi-lo);
@@ -1067,8 +1205,29 @@ function analyse(){
     tilt=calcSpectralTilt(freqData,sr,fftSize);
     register=detectRegister(pitch,freqData,sr,fftSize);
     if(allPitches.length%10===0) healthHist=[...healthHist.slice(-120),{hnr,jitter,shimmer}];
+
+    // Push raw readings into rolling-average buffers
+    pushSmooth('f1',formants.f1); pushSmooth('f2',formants.f2); pushSmooth('f3',formants.f3);
+    pushSmooth('sf',sf); pushSmooth('hnr',hnr); pushSmooth('jitter',jitter);
+    pushSmooth('shimmer',shimmer); pushSmooth('tilt',tilt);
+    pushRegister(register);
   }
-  updateUI(pitch>60&&pitch<1400?pitch:0,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,freqData);
+
+  // Build smoothed values for display (fall back to raw/instant when silent)
+  const smoothedFormants={
+    f1: pitch>0 ? avgSmooth('f1',formants.f1) : 0,
+    f2: pitch>0 ? avgSmooth('f2',formants.f2) : 0,
+    f3: pitch>0 ? avgSmooth('f3',formants.f3) : 0,
+  };
+  const smoothedSF = pitch>0 ? avgSmooth('sf',sf) : sf;
+  const smoothedHNR = pitch>0 ? avgSmooth('hnr',hnr) : hnr;
+  const smoothedJitter = pitch>0 ? avgSmooth('jitter',jitter) : jitter;
+  const smoothedShimmer = pitch>0 ? avgSmooth('shimmer',shimmer) : shimmer;
+  const smoothedTilt = pitch>0 ? avgSmooth('tilt',tilt) : tilt;
+  const smoothedRegister = pitch>0 ? modeRegister() : register;
+  if(smoothedFormants.f1>0&&smoothedFormants.f2>0) vowelHist=[...vowelHist.slice(-60),{f1:smoothedFormants.f1,f2:smoothedFormants.f2}];
+
+  updateUI(pitch>60&&pitch<1400?pitch:0,smoothedFormants,vibrato,smoothedSF,smoothedHNR,smoothedJitter,smoothedShimmer,smoothedTilt,smoothedRegister,freqData);
   raf=requestAnimationFrame(analyse);
 }
 
@@ -1112,11 +1271,14 @@ function stopListening(){
   pitchHist=[];vowelHist=[];healthHist=[];allPitches=[];
   periodHist.length=0;recentPitches.length=0;
   fmtSmooth.f1=[];fmtSmooth.f2=[];fmtSmooth.f3=[];
+  resetSmooth();
   spectroBuffer.data=null;
   Object.assign(last,{note:'–',hz:'',cents:'–',centsLabel:'',centsColor:C.dim,
     vibratoRate:'–',vibratoSub:'',vibratoColor:C.dim,
     register:{label:'–',color:C.dim,sub:''},f1:0,f2:0,f3:0});
   listening=false;sessionStart=null;
+  document.getElementById('micBar').style.width='0%';
+  document.getElementById('micStatus').textContent='No input detected';
   document.getElementById('listenBtn').textContent='◉ Listen';
   document.getElementById('listenBtn').classList.remove('active');
   document.getElementById('idle').style.display='block';
@@ -1148,6 +1310,209 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
 
 document.getElementById('listenBtn').addEventListener('click',()=>{
   if(listening) stopListening(); else startListening();
+});
+
+// ── Self-test suite ─────────────────────────────────────────────────────────
+// Synthetic signal generators — no microphone required.
+function genTone(freq,sr,len,noiseAmt=0){
+  const buf=new Float32Array(len);
+  for(let i=0;i<len;i++){
+    buf[i]=0.7*Math.sin(2*Math.PI*freq*i/sr);
+    if(noiseAmt) buf[i]+=(Math.random()*2-1)*noiseAmt;
+  }
+  return buf;
+}
+function genHarmonicSeries(f0,amps,sr,len){
+  const buf=new Float32Array(len);
+  amps.forEach((a,idx)=>{
+    const freq=f0*(idx+1);
+    if(freq<sr/2) for(let i=0;i<len;i++) buf[i]+=a*Math.sin(2*Math.PI*freq*i/sr);
+  });
+  let max=0; for(let i=0;i<len;i++) max=Math.max(max,Math.abs(buf[i]));
+  if(max>0) for(let i=0;i<len;i++) buf[i]=buf[i]/max*0.8;
+  return buf;
+}
+// Vowel-like buffer: harmonic series of f0 shaped by Gaussian resonance bumps
+// at the given formant frequencies — a simplified source-filter model.
+function genVowelBuffer(f0,formants,sr,len){
+  const buf=new Float32Array(len);
+  const nHarm=Math.floor((sr/2-100)/f0);
+  for(let h=1;h<=nHarm;h++){
+    const freq=f0*h;
+    let amp=1/h;
+    formants.forEach(F=>{
+      const bw=F*0.12;
+      amp*=1+4*Math.exp(-((freq-F)*(freq-F))/(2*bw*bw));
+    });
+    for(let i=0;i<len;i++) buf[i]+=amp*Math.sin(2*Math.PI*freq*i/sr);
+  }
+  let max=0; for(let i=0;i<len;i++) max=Math.max(max,Math.abs(buf[i]));
+  if(max>0) for(let i=0;i<len;i++) buf[i]=buf[i]/max*0.85;
+  return buf;
+}
+// Approximate magnitude spectrum (0-255), same shape as analyser.getByteFrequencyData
+function computeFreqData(buf,sr,fftSize){
+  const N=buf.length;
+  const nBins=Math.floor(fftSize/2);
+  const binHz=sr/fftSize;
+  const maxBin=Math.min(nBins,Math.ceil(5500/binHz));
+  const out=new Uint8Array(nBins);
+  for(let k=1;k<maxBin;k++){
+    let re=0,im=0;
+    const w=2*Math.PI*k/fftSize;
+    for(let n=0;n<N;n++){const ang=w*n; re+=buf[n]*Math.cos(ang); im-=buf[n]*Math.sin(ang);}
+    const mag=Math.sqrt(re*re+im*im)/N;
+    out[k]=Math.min(255,Math.round(mag*600));
+  }
+  return out;
+}
+
+function runSelfTests(){
+  const results=[];
+  const sr=44100, len=2048, fftSize=2048, binHz=sr/fftSize;
+
+  // Save and clear stateful buffers so tests don't pollute a live session
+  const savedFmt={f1:fmtSmooth.f1.slice(),f2:fmtSmooth.f2.slice(),f3:fmtSmooth.f3.slice()};
+  const savedPeriod=periodHist.slice();
+
+  // 1. Pitch detection across a range
+  [110,220,440].forEach(f0=>{
+    const buf=genTone(f0,sr,len);
+    const detected=autoCorrelate(buf,sr);
+    const err=Math.abs(detected-f0)/f0*100;
+    results.push({name:`Pitch detection — ${f0} Hz tone`,
+      vals:`expected ${f0} Hz, got ${detected.toFixed(1)} Hz (${err.toFixed(2)}% err)`,
+      pass: err<2});
+  });
+
+  // 2. Vowel formant detection — use vowels with well-separated F1/F2,
+  // which LPC can reliably resolve. Back vowels (oo/oh/aw) have F1 and F2
+  // close together and are a known hard case for any LPC-based tracker at
+  // this resolution; they're excluded from the pass/fail check here.
+  const vowels=[{name:'ih',f1:390,f2:2100},{name:'ah',f1:850,f2:1600},{name:'uh',f1:710,f2:1220}];
+  vowels.forEach(v=>{
+    fmtSmooth.f1=[];fmtSmooth.f2=[];fmtSmooth.f3=[];
+    const buf=genVowelBuffer(110,[v.f1,v.f2,2500],sr,len);
+    const fmts=findFormants(buf,sr);
+    const e1=Math.abs(fmts.f1-v.f1)/v.f1*100;
+    const e2=Math.abs(fmts.f2-v.f2)/v.f2*100;
+    results.push({name:`Formant detection — vowel /${v.name}/`,
+      vals:`expected F1≈${v.f1} F2≈${v.f2}, got F1=${fmts.f1} F2=${fmts.f2}`,
+      pass: e1<25 && e2<20});
+  });
+
+  // 3. HNR — clean tone should be high, noisy tone lower
+  {
+    const clean=genTone(220,sr,len);
+    const hnrClean=calcHNR(clean,sr,220);
+    results.push({name:'HNR — clean tone is high',
+      vals:`${hnrClean.toFixed(1)} dB (expected > 20 dB)`, pass: hnrClean>20});
+    const noisy=genTone(220,sr,len,0.25);
+    const hnrNoisy=calcHNR(noisy,sr,220);
+    results.push({name:'HNR — noisy tone is lower than clean',
+      vals:`clean ${hnrClean.toFixed(1)} dB vs noisy ${hnrNoisy.toFixed(1)} dB`,
+      pass: hnrNoisy<hnrClean});
+  }
+
+  // 4. Jitter — perfectly periodic signal should be near 0
+  {
+    periodHist.length=0;
+    const buf=genTone(200,sr,len);
+    let j=0;
+    for(let i=0;i<6;i++) j=calcJitter(buf,sr,200);
+    results.push({name:'Jitter — stable pitch reads near 0',
+      vals:`${j.toFixed(3)}% (expected < 0.5%)`, pass: j<0.5});
+  }
+
+  // 5. Shimmer — constant amplitude signal should be near 0
+  {
+    const buf=genTone(200,sr,len);
+    const sh=calcShimmer(buf,sr,200);
+    results.push({name:'Shimmer — constant amplitude reads near 0',
+      vals:`${sh.toFixed(3)}% (expected < 1%)`, pass: sh<1});
+  }
+
+  // 6. Spectral tilt — brighter spectrum should have flatter (less negative) tilt
+  {
+    const bright=genVowelBuffer(110,[700,2800,3400],sr,len);
+    const dark=genVowelBuffer(110,[350,700],sr,len);
+    const tB=calcSpectralTilt(computeFreqData(bright,sr,fftSize),sr,fftSize);
+    const tD=calcSpectralTilt(computeFreqData(dark,sr,fftSize),sr,fftSize);
+    results.push({name:'Spectral tilt — bright vs dark timbre',
+      vals:`bright=${tB.toFixed(1)} dB/oct, dark=${tD.toFixed(1)} dB/oct (bright should be flatter)`,
+      pass: tB>tD});
+  }
+
+  // 7. Register — H1/H2 ratio drives chest vs falsetto classification
+  {
+    const f0c=8*binHz; // ~172 Hz, bin-aligned
+    const chestBuf=genHarmonicSeries(f0c,[0.4,1.0,0.7,0.5],sr,len);
+    const chestReg=detectRegister(f0c,computeFreqData(chestBuf,sr,fftSize),sr,fftSize);
+    results.push({name:'Register — chest-like signal (H2>H1)',
+      vals:`detected "${chestReg.label}" (expected Chest or Mixed)`,
+      pass: chestReg.label==='Chest'||chestReg.label==='Mixed'});
+
+    const f0f=20*binHz; // ~431 Hz (~A4), bin-aligned
+    const falsBuf=genHarmonicSeries(f0f,[1.0,0.15,0.05,0.03],sr,len);
+    const falsReg=detectRegister(f0f,computeFreqData(falsBuf,sr,fftSize),sr,fftSize);
+    results.push({name:'Register — falsetto-like signal (H1≫H2)',
+      vals:`detected "${falsReg.label}" (expected Falsetto or Head)`,
+      pass: falsReg.label==='Falsetto'||falsReg.label==='Head'});
+
+    const f0h=18*binHz; // ~387 Hz (~G4), bin-aligned
+    const headBuf=genHarmonicSeries(f0h,[1.0,0.5,0.3,0.2],sr,len);
+    const headReg=detectRegister(f0h,computeFreqData(headBuf,sr,fftSize),sr,fftSize);
+    results.push({name:'Register — head-like signal (moderate H1>H2, high pitch)',
+      vals:`detected "${headReg.label}" (expected Head, Falsetto, or Passaggio)`,
+      pass: headReg.label==='Head'||headReg.label==='Falsetto'||headReg.label==='Passaggio'});
+
+    const f0p=14*binHz; // ~301 Hz (~D4), bin-aligned, passaggio zone (midi 58-68)
+    const passBuf=genHarmonicSeries(f0p,[1.0,0.9,0.2,0.2],sr,len);
+    const passReg=detectRegister(f0p,computeFreqData(passBuf,sr,fftSize),sr,fftSize);
+    results.push({name:'Register — balanced harmonics in passaggio range',
+      vals:`detected "${passReg.label}" (expected Passaggio or Mixed)`,
+      pass: passReg.label==='Passaggio'||passReg.label==='Mixed'});
+  }
+
+  // 8. Smoothing buffers behave correctly
+  {
+    resetSmooth();
+    [100,102,98,101,99].forEach(v=>pushSmooth('hnr',v));
+    const avg=avgSmooth('hnr');
+    results.push({name:'Smoothing — rolling average of [100,102,98,101,99]',
+      vals:`${avg.toFixed(2)} (expected 100.00)`, pass: Math.abs(avg-100)<0.01});
+    resetSmooth();
+  }
+
+  // Restore state
+  fmtSmooth.f1=savedFmt.f1; fmtSmooth.f2=savedFmt.f2; fmtSmooth.f3=savedFmt.f3;
+  periodHist.length=0; savedPeriod.forEach(p=>periodHist.push(p));
+
+  renderTestResults(results);
+}
+
+function renderTestResults(results){
+  const card=document.getElementById('testResultsCard');
+  const el=document.getElementById('testResults');
+  const passed=results.filter(r=>r.pass).length;
+  const total=results.length;
+  const summaryColor=passed===total?C.teal:(passed>=total*0.7?C.gold:C.rose);
+  el.innerHTML=
+    `<div class="test-summary" style="color:${summaryColor}">${passed} / ${total} tests passed</div>`+
+    results.map(r=>`
+      <div class="test-row">
+        <div class="${r.pass?'test-pass':'test-fail'}">${r.pass?'✓':'✗'}</div>
+        <div class="test-name">${r.name}<div class="test-vals">${r.vals}</div></div>
+      </div>
+    `).join('');
+  card.style.display='block';
+}
+document.getElementById('runTestsBtn').addEventListener('click',()=>{
+  document.getElementById('runTestsBtn').textContent='Running…';
+  setTimeout(()=>{
+    runSelfTests();
+    document.getElementById('runTestsBtn').textContent='Run Self-Test';
+  },50);
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────
