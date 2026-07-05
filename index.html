@@ -47,9 +47,15 @@ h1 { font-size: 18px; font-weight: normal; }
 #idle { text-align: center; padding: 12px 0 0; color: #9a9488; font-size: 12px; }
 #idle span { color: #c9a84c; }
 canvas { display: block; width: 100%; border-radius: 4px; }
-#vowelCanvas, #spectroCanvas { height: 180px; }
+.fs-overlay{position:fixed;inset:0;background:#0f0e17;z-index:100;display:flex;flex-direction:column;padding:12px;}
+.fs-overlay canvas{flex:1;height:auto!important;}
+.fs-close{align-self:flex-end;background:none;border:1px solid #9a9488;color:#9a9488;border-radius:4px;padding:4px 12px;font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-bottom:8px;}
+.fs-expand{float:right;background:none;border:none;color:#9a9488;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;}
+#vowelCanvas { height: 140px; }
+#spectroCanvas { height: 180px; }
 #healthCanvas { height: 130px; }
 #rangeCanvas { height: 95px; }
+#synthCanvas { height: 200px; }
 /* Exercise tab */
 .ex-target { text-align: center; padding: 18px 0 10px; }
 .ex-note { font-size: 64px; font-family: monospace; font-weight: normal; line-height: 1; }
@@ -90,6 +96,8 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   <div class="tab active" data-tab="live">Live</div>
   <div class="tab" data-tab="health">Health</div>
   <div class="tab" data-tab="exercise">Exercise</div>
+  <div class="tab" data-tab="synth">Synth</div>
+  <div class="tab" data-tab="trombone">Trombone</div>
   <div class="tab" data-tab="session">Session</div>
   <div class="tab" data-tab="test">Test</div>
 </div>
@@ -102,10 +110,13 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       <label style="font-size:10px;color:#9a9488;display:flex;align-items:center;gap:5px">
         Averaging:
         <select id="avgWindowSelect" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:3px 6px;font-family:monospace;font-size:10px">
+          <option value="100">0.1s</option>
           <option value="250">0.25s</option>
           <option value="500" selected>0.5s</option>
           <option value="1000">1s</option>
           <option value="2000">2s</option>
+          <option value="3000">3s</option>
+          <option value="5000">5s</option>
         </select>
       </label>
     </div>
@@ -132,6 +143,15 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       <div class="card-label">Register</div>
       <div style="margin-top:3px" id="registerBadge"><span style="color:#9a9488;font-size:12px">–</span></div>
       <div class="sub" id="registerSub"></div>
+      <select id="voiceTypeSelect" style="margin-top:5px;background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:2px 5px;font-family:Georgia,serif;font-size:10px;width:100%">
+        <option value="general" selected>General</option>
+        <option value="soprano">Soprano</option>
+        <option value="mezzo">Mezzo</option>
+        <option value="contralto">Contralto</option>
+        <option value="tenor">Tenor</option>
+        <option value="baritone">Baritone</option>
+        <option value="bass">Bass</option>
+      </select>
       <div class="ref" id="registerDebug" style="margin-top:3px"></div>
     </div>
   </div>
@@ -146,12 +166,12 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   </div>
   <div class="grid2">
     <div class="card">
-      <div class="card-label">Vowel Space</div>
+      <div class="card-label">Vowel Space<button class="fs-expand" data-fs="vowelCanvas">⛶</button></div>
       <canvas id="vowelCanvas"></canvas>
       <div class="hint">F1 × F2. Gold dot = current vowel position.</div>
     </div>
     <div class="card">
-      <div class="card-label">Spectrogram</div>
+      <div class="card-label">Spectrogram<button class="fs-expand" data-fs="spectroCanvas">⛶</button></div>
       <canvas id="spectroCanvas"></canvas>
       <div class="hint">Frequency over time. Bright bands = strong harmonics. Singer's formant visible ~2.5–3kHz.</div>
     </div>
@@ -224,7 +244,7 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   </div>
 
   <div class="card">
-    <div class="card-label">Health Over Session</div>
+    <div class="card-label">Health Over Session<button class="fs-expand" data-fs="healthCanvas">⛶</button></div>
     <canvas id="healthCanvas"></canvas>
     <div class="hint" style="margin-top:5px">HNR (teal) and jitter (amber). Downward HNR trend or rising jitter over a lesson may indicate vocal fatigue.</div>
   </div>
@@ -279,6 +299,16 @@ canvas { display: block; width: 100%; border-radius: 4px; }
         </select>
       </label>
     </div>
+    <div style="margin-top:8px">
+      <label style="font-size:10px;color:#9a9488;display:flex;align-items:center;gap:5px">
+        Difficulty:
+        <select id="exDifficulty" style="background:#242236;color:#f5f0e8;border:1px solid #2e2b4a;border-radius:4px;padding:4px 6px;font-family:monospace;font-size:11px">
+          <option value="easy" selected>Easy ±50¢</option>
+          <option value="medium">Medium ±35¢</option>
+          <option value="hard">Hard ±25¢</option>
+        </select>
+      </label>
+    </div>
   </div>
 
   <div class="card">
@@ -307,9 +337,44 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   </div>
 
   <div class="card">
-    <div class="card-label">Spectrolizer</div>
+    <div class="card-label">Spectrolizer<button class="fs-expand" data-fs="spectroExCanvas">⛶</button></div>
     <canvas id="spectroExCanvas"></canvas>
     <div class="hint" style="margin-top:5px">Real-time FFT. The target frequency is marked in gold.</div>
+  </div>
+</div>
+
+<!-- ── SYNTH ── -->
+<div class="tab-panel" id="tab-synth">
+  <div class="card">
+    <div class="card-label">Vowel Synthesizer</div>
+    <canvas id="synthCanvas" style="touch-action:none"></canvas>
+    <div class="hint" style="margin-top:5px">Drag on the pad to shape the vowel: left = dark/back (oo), right = bright/front (ee), top = closed, bottom = open (ah). This is the same chart the Live tab plots your voice on.</div>
+  </div>
+  <div class="card">
+    <label style="font-size:11px;color:#9a9488;display:flex;align-items:center;gap:8px">
+      Pitch:
+      <input type="range" id="synthPitch" min="80" max="400" value="180" style="flex:1">
+      <span id="synthPitchLabel" style="font-family:monospace;font-size:11px;color:#f5f0e8;min-width:80px">180 Hz</span>
+    </label>
+    <div id="synthPresets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+    <div class="hint" style="margin-top:8px">Two bandpass resonators on a buzzy source — a minimal source-filter voice, so it sounds vowel-like rather than human. Playing it through speakers near the mic while Listening will land the Live vowel dot in roughly the same spot (a handy self-test). Inspired by Neil Thapen's Pink Trombone (dood.al/pinktrombone).</div>
+  </div>
+</div>
+
+<!-- ── TROMBONE ── -->
+<div class="tab-panel" id="tab-trombone">
+  <div class="card" style="padding:0;overflow:hidden">
+    <iframe id="tromboneFrame" title="Pink Trombone vocal tract"
+      style="width:100%;height:78vh;border:0;display:block;background:#0f0e17"
+      allow="autoplay"></iframe>
+  </div>
+  <div class="card">
+    <div class="hint" id="tromboneNote">
+      <strong>Pink Trombone</strong> — an interactive model of the human vocal
+      tract: drag the tongue and add constrictions to shape vowels and
+      consonants directly. Created by Neil Thapen, used here under the MIT
+      License (dood.al/pinktrombone). It runs entirely offline once loaded.
+    </div>
   </div>
 </div>
 
@@ -320,7 +385,7 @@ canvas { display: block; width: 100%; border-radius: 4px; }
     <div id="sessionLive"><div class="session-empty">No data yet — start singing to record a session.</div></div>
   </div>
   <div class="card">
-    <div class="card-label">Pitch Range</div>
+    <div class="card-label">Pitch Range<button class="fs-expand" data-fs="rangeCanvas">⛶</button></div>
     <canvas id="rangeCanvas"></canvas>
     <div class="hint" style="margin-top:5px">All pitches sung this session. Gold band = passaggio region.</div>
   </div>
@@ -375,7 +440,7 @@ function setupCanvas(id){
   CTX[id]=ctx; CTX[id+'W']=rect.width; CTX[id+'H']=rect.height;
 }
 function setupAllCanvases(){
-  ['vowelCanvas','spectroCanvas','healthCanvas','rangeCanvas','exerciseCanvas','spectroExCanvas'].forEach(setupCanvas);
+  ['vowelCanvas','spectroCanvas','healthCanvas','rangeCanvas','exerciseCanvas','spectroExCanvas','synthCanvas'].forEach(setupCanvas);
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -385,12 +450,31 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-    requestAnimationFrame(redrawAll);
+    if(t.dataset.tab!=='synth' && typeof stopSynth==='function') stopSynth();
+    if(t.dataset.tab==='trombone' && typeof loadTrombone==='function') loadTrombone();
+    requestAnimationFrame(()=>{redrawAll(); if(t.dataset.tab==='synth' && typeof drawSynthPad==='function') drawSynthPad();});
   });
 });
 
 // ── Note names ─────────────────────────────────────────────────────────────
 const NOTE_NAMES=["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+
+// Voice-type register boundaries (MIDI note numbers), approximate standard
+// pedagogy values. passZones: [primo, secondo] passaggio bands. falsettoMin
+// null for female voice types (strong H1-dominance is labeled Head, not
+// Falsetto). headMin: lowest pitch that can be labeled Head. The chest branch
+// is pitch-independent by design, so e.g. female chest can extend to ~C5 when
+// H2 dominates — the old hardcoded passaggio fallback was what misread it.
+const VOICE_TYPES={
+  general:  {label:'General',   headMin:65, falsettoMin:60,  passZones:[[58,68]]},
+  soprano:  {label:'Soprano',   headMin:67, falsettoMin:null,passZones:[[64,67],[73,78]]},
+  mezzo:    {label:'Mezzo',     headMin:65, falsettoMin:null,passZones:[[62,65],[71,76]]},
+  contralto:{label:'Contralto', headMin:64, falsettoMin:null,passZones:[[60,64],[67,72]]},
+  tenor:    {label:'Tenor',     headMin:66, falsettoMin:60,  passZones:[[60,66]]},
+  baritone: {label:'Baritone',  headMin:62, falsettoMin:57,  passZones:[[57,64]]},
+  bass:     {label:'Bass',      headMin:60, falsettoMin:55,  passZones:[[55,62]]}
+};
+let voiceType='general';
 function freqToNote(freq){
   if(freq<=0) return{note:"–",cents:0,midi:0};
   const midi=69+12*Math.log2(freq/440);
@@ -522,33 +606,71 @@ function detectVibrato(hist){
 }
 
 // ── DSP: HNR ──────────────────────────────────────────────────────────────
+// Normalized autocorrelation formulation: HNR = 10·log10(r/(1−r)) where r is
+// the peak normalized cross-correlation near the pitch lag. Searching ±12%
+// around the nominal lag makes this robust to pitch-estimate error and
+// vibrato drift, which made the old fixed-lag version read artificially low.
 function calcHNR(buf,sr,pitch){
   if(pitch<=0) return 0;
-  const period=Math.round(sr/pitch);
-  if(period<2||period>=buf.length/2) return 0;
-  let signal=0,noise=0;
-  const n=Math.floor(buf.length/period)*period;
-  for(let i=0;i<n-period;i++){
-    const diff=buf[i]-buf[i+period];
-    signal+=buf[i]*buf[i]; noise+=diff*diff*0.5;
+  const d0=Math.round(sr/pitch);
+  if(d0<16||d0>=buf.length/2) return 0;
+  const dMax=Math.max(2,Math.floor(d0*0.12));
+  const N=buf.length;
+  let bestR=-1;
+  for(let d=d0-dMax;d<=d0+dMax;d++){
+    let num=0,e1=0,e2=0;
+    for(let i=0;i<N-d;i++){
+      const a=buf[i],b=buf[i+d];
+      num+=a*b;e1+=a*a;e2+=b*b;
+    }
+    const r=num/Math.sqrt(e1*e2+1e-12);
+    if(r>bestR) bestR=r;
   }
-  if(noise<1e-10) return 40;
-  const ratio=signal/noise;
-  return ratio>1?Math.min(40,10*Math.log10(ratio)):0;
+  if(bestR<=0) return 0;
+  if(bestR>=0.9999) return 40;
+  return Math.max(0,Math.min(40,10*Math.log10(bestR/(1-bestR))));
 }
 
 // ── DSP: Jitter ────────────────────────────────────────────────────────────
-const periodHist=[];
+// Cycle-to-cycle period perturbation, measured WITHIN each frame buffer via
+// waveform matching: for each successive cycle, find the lag near the nominal
+// period that maximizes normalized cross-correlation. This is true jitter —
+// the old per-animation-frame approach measured inter-frame pitch variation,
+// so healthy vibrato read as pathological jitter.
+// Uses RAP-style deviation from a local 3-point mean, which cancels the slow
+// period drift that vibrato causes (≈0.5%/cycle at 6Hz ±50¢) while keeping
+// genuine cycle-level irregularity.
 function calcJitter(buf,sr,pitch){
   if(pitch<=0) return 0;
-  const period=Math.round(sr/pitch);
-  periodHist.push(period);
-  if(periodHist.length>20) periodHist.shift();
-  if(periodHist.length<4) return 0;
-  let sumDiff=0,sumPer=0;
-  for(let i=1;i<periodHist.length;i++){sumDiff+=Math.abs(periodHist[i]-periodHist[i-1]);sumPer+=periodHist[i];}
-  const mean=sumPer/(periodHist.length-1);
-  return mean>0?(sumDiff/(periodHist.length-1))/mean*100:0;
+  const T0=sr/pitch;
+  if(T0<16||T0*3>buf.length) return 0; // need at least ~3 cycles in buffer
+  const W=Math.floor(T0);              // comparison window: one nominal period
+  const dMax=Math.max(2,Math.floor(T0*0.12));
+  const d0=Math.round(T0);
+  const periods=[];
+  let p=0;
+  while(p+d0+dMax+W<buf.length){
+    let bestR=-2,bestD=d0;
+    for(let d=d0-dMax;d<=d0+dMax;d++){
+      let num=0,e1=0,e2=0;
+      for(let i=0;i<W;i++){
+        const a=buf[p+i],b=buf[p+d+i];
+        num+=a*b;e1+=a*a;e2+=b*b;
+      }
+      const r=num/Math.sqrt(e1*e2+1e-12);
+      if(r>bestR){bestR=r;bestD=d;}
+    }
+    periods.push(bestD);
+    p+=bestD;
+  }
+  if(periods.length<3) return 0;
+  let meanT=0; periods.forEach(t=>meanT+=t); meanT/=periods.length;
+  let sum=0,n=0;
+  for(let i=1;i<periods.length-1;i++){
+    const local=(periods[i-1]+periods[i]+periods[i+1])/3;
+    sum+=Math.abs(periods[i]-local);n++;
+  }
+  return n>0&&meanT>0?(sum/n)/meanT*100:0;
 }
 
 // ── DSP: Shimmer ───────────────────────────────────────────────────────────
@@ -570,13 +692,20 @@ function calcShimmer(buf,sr,pitch){
 }
 
 // ── DSP: Spectral tilt ────────────────────────────────────────────────────
+// getByteFrequencyData values are ALREADY dB-scaled: each byte maps linearly
+// from minDecibels..maxDecibels (analyser defaults: -100..-30 dB). So the
+// correct conversion is linear, NOT another log.
+const ANALYSER_MIN_DB=-100, ANALYSER_MAX_DB=-30;
+const BYTE_TO_DB=(ANALYSER_MAX_DB-ANALYSER_MIN_DB)/255; // ≈0.2745 dB per byte step
+function byteToDb(b){return ANALYSER_MIN_DB+b*BYTE_TO_DB;}
 function calcSpectralTilt(freqData,sr,fftSize){
   const binHz=sr/fftSize;
   const lo=Math.max(1,Math.floor(200/binHz));
   const hi=Math.min(freqData.length-1,Math.floor(5000/binHz));
   let sx=0,sy=0,sxx=0,sxy=0,n=0;
   for(let k=lo;k<=hi;k++){
-    const db=20*Math.log10((freqData[k]/255)+1e-6);
+    if(freqData[k]===0) continue; // below analyser floor — no info
+    const db=byteToDb(freqData[k]);
     const oct=Math.log2(k*binHz/200);
     sx+=oct;sy+=db;sxx+=oct*oct;sxy+=oct*db;n++;
   }
@@ -587,8 +716,9 @@ function calcSpectralTilt(freqData,sr,fftSize){
 // ── DSP: Register (improved) ──────────────────────────────────────────────
 // Uses H1-H2 difference (a validated acoustic correlate of register)
 // plus pitch range heuristics. Falsetto has very weak H2 relative to H1.
-function detectRegister(pitch,freqData,sr,fftSize){
+function detectRegister(pitch,freqData,sr,fftSize,vt){
   if(pitch<=0) return{label:"–",color:C.dim,sub:"",debug:""};
+  vt=vt||VOICE_TYPES[voiceType]||VOICE_TYPES.general;
   const binHz=sr/fftSize;
   // Sample energy around each harmonic (±1 bin)
   function harmonicEnergy(n){
@@ -596,38 +726,59 @@ function detectRegister(pitch,freqData,sr,fftSize){
     if(b<1||b>=freqData.length-1) return 0;
     return Math.max(freqData[b-1],freqData[b],freqData[b+1]);
   }
-  const h1=harmonicEnergy(1)||1;
-  const h2=harmonicEnergy(2)||1;
-  const h3=harmonicEnergy(3)||1;
-  const h4=harmonicEnergy(4)||1;
-  // H1-H2 in dB: key measure — chest has H2>H1, falsetto/head has H1>H2
-  const h1h2db=20*Math.log10(h1/h2);
+  const h1=harmonicEnergy(1);
+  const h2=harmonicEnergy(2);
+  const h3=harmonicEnergy(3);
+  const h4=harmonicEnergy(4);
+  // H1-H2 in dB: key measure — chest has H2>H1, falsetto/head has H1>H2.
+  // Bytes are already dB-scaled (linear map of minDecibels..maxDecibels),
+  // so the dB difference is just the byte difference times BYTE_TO_DB.
+  const h1h2db=(h1-h2)*BYTE_TO_DB;
   // Overall harmonic richness (chest has more upper harmonics)
   const upperMean=(h3+h4)/2;
   const {midi}=freqToNote(pitch);
-  const debug=`H1−H2=${h1h2db.toFixed(1)}dB · H1=${h1} H2=${h2} H3=${h3} H4=${h4} · midi=${midi}`;
+  const debug=`${vt.label} · H1−H2=${h1h2db.toFixed(1)}dB · H1=${h1} H2=${h2} H3=${h3} H4=${h4} · midi=${midi}`;
 
-  // Falsetto: H1 dominates strongly (h1h2db > 6dB), typically above C4
-  if(h1h2db>8&&midi>60){
+  // Thresholds in true dB (typical falsetto H1-H2 in the literature: 10-20dB).
+  // Pitch gates come from the selected voice type.
+  // Falsetto: H1 dominates strongly — only a label for male voice types
+  // (falsettoMin non-null). For female types this falls through to Head.
+  if(vt.falsettoMin!==null && h1h2db>10 && midi>vt.falsettoMin){
     return{label:"Falsetto",color:"#a07dd6",sub:"H1 dominant, weak upper harmonics",debug};
   }
-  // Head voice: H1 slightly dominant, high pitch
-  if(h1h2db>3&&midi>65){
+  // Head voice: H1 moderately dominant, above the voice type's head floor
+  if(h1h2db>4 && midi>vt.headMin){
     return{label:"Head",color:C.teal,sub:"upper register, H1 prominent",debug};
   }
-  // Chest: H2 and upper harmonics strong
-  if(h1h2db<-2&&upperMean>40){
+  // Chest: H2 and upper harmonics strong (pitch-independent by design)
+  if(h1h2db<-2 && upperMean>40){
     return{label:"Chest",color:C.gold,sub:"lower register, H2 dominant",debug};
   }
-  // Passaggio zone
-  if(midi>=58&&midi<=68){
+  // Passaggio zone(s) for this voice type
+  if(vt.passZones.some(([lo,hi])=>midi>=lo&&midi<=hi)){
     return{label:"Passaggio",color:C.rose,sub:"register transition zone",debug};
   }
   // Mixed
   return{label:"Mixed",color:"#88b4d0",sub:"balanced harmonic structure",debug};
 }
 
-// ── Stable tuning (lowest-variance window) ────────────────────────────────
+// ── DSP: Singer's formant ratio ───────────────────────────────────────────
+// Mean level in 2.5–3.2kHz relative to mean level in 0.2–2kHz, in dB.
+// Absolute band energy just measures loudness; the ratio measures
+// placement/resonance independent of volume. Typical range: ≈-40dB
+// (speech/untrained) up to ≈-5dB (strong operatic ring).
+function calcSingerFormant(freqData,sr,fftSize){
+  const binHz=sr/fftSize;
+  const sfLo=Math.floor(2500/binHz),sfHi=Math.floor(3200/binHz);
+  const lowLo=Math.max(1,Math.floor(200/binHz)),lowHi=Math.floor(2000/binHz);
+  let sfSum=0,sfN=0,lowSum=0,lowN=0;
+  for(let k=sfLo;k<sfHi;k++){sfSum+=freqData[k];sfN++;}
+  for(let k=lowLo;k<lowHi;k++){lowSum+=freqData[k];lowN++;}
+  const sfMean=sfN?sfSum/sfN:0, lowMean=lowN?lowSum/lowN:0;
+  return (sfMean-lowMean)*BYTE_TO_DB;
+}
+
+
 const recentPitches=[];
 let snapFrozen=false, snapValue=null;
 document.getElementById('snapBtn').addEventListener('click',()=>{
@@ -658,26 +809,36 @@ function getStablePitch(pitch){
 }
 
 // ── Spectrogram state ─────────────────────────────────────────────────────
-// We maintain an offscreen ImageData rolling buffer
-const spectroBuffer={data:null,col:0,W:0,H:0};
-function initSpectroBuffer(W,H){
+// Rolling pixel buffer. Offscreen canvas, ImageData, and the row→bin lookup
+// are created ONCE per resize and reused — allocating them every frame was
+// the main GC-churn source in the rAF loop.
+const spectroBuffer={data:null,col:0,W:0,H:0,offscreen:null,oCtx:null,imgData:null,rowBin:null,rowFreq:null};
+function initSpectroBuffer(W,H,sr,fftSize){
   spectroBuffer.W=W; spectroBuffer.H=H; spectroBuffer.col=0;
   spectroBuffer.data=new Uint8ClampedArray(W*H*4).fill(0);
+  spectroBuffer.imgData=new ImageData(spectroBuffer.data,W,H);
+  spectroBuffer.offscreen=document.createElement('canvas');
+  spectroBuffer.offscreen.width=W; spectroBuffer.offscreen.height=H;
+  spectroBuffer.oCtx=spectroBuffer.offscreen.getContext('2d');
+  // Precompute log-scale frequency mapping per row (80–5000 Hz)
+  const loF=80, hiF=5000, binHz=sr/fftSize;
+  spectroBuffer.rowBin=new Int32Array(H);
+  spectroBuffer.rowFreq=new Float32Array(H);
+  for(let row=0;row<H;row++){
+    const freq=loF*Math.pow(hiF/loF,1-(row/H));
+    spectroBuffer.rowBin[row]=Math.round(freq/binHz);
+    spectroBuffer.rowFreq[row]=freq;
+  }
 }
 function pushSpectroColumn(freqData,sr,fftSize,canvasId){
   const ctx=CTX[canvasId];
   if(!ctx) return;
   const W=CTX[canvasId+'W']||300, H=CTX[canvasId+'H']||160;
-  if(spectroBuffer.W!==Math.round(W)||spectroBuffer.H!==Math.round(H)) initSpectroBuffer(Math.round(W),Math.round(H));
-  const {data,col}=spectroBuffer;
+  if(spectroBuffer.W!==Math.round(W)||spectroBuffer.H!==Math.round(H)) initSpectroBuffer(Math.round(W),Math.round(H),sr,fftSize);
+  const {data,col,rowBin,rowFreq}=spectroBuffer;
   const bW=spectroBuffer.W, bH=spectroBuffer.H;
-  // Map frequency bins to canvas rows (log scale, 80–5000 Hz)
-  const loF=80, hiF=5000;
-  const binHz=sr/fftSize;
   for(let row=0;row<bH;row++){
-    const frac=1-(row/bH);
-    const freq=loF*Math.pow(hiF/loF,frac);
-    const bin=Math.round(freq/binHz);
+    const bin=rowBin[row];
     const amp=bin<freqData.length?freqData[bin]:0;
     // Color map: dark purple → teal → gold → white
     let r,g,b;
@@ -686,32 +847,57 @@ function pushSpectroColumn(freqData,sr,fftSize,canvasId){
     else if(t<0.66){const s=(t-0.33)/0.33;r=Math.round(54+s*140);g=Math.round(54+s*130);b=Math.round(113-s*50);}
     else{const s=(t-0.66)/0.34;r=Math.round(194+s*61);g=Math.round(184+s*71);b=Math.round(63+s*192);}
     // Singer's formant band highlight (2500–3200 Hz) — subtle gold tint
+    const freq=rowFreq[row];
     if(freq>=2500&&freq<=3200&&amp>60){r=Math.min(255,r+30);g=Math.min(255,g+20);}
     const idx=(row*bW+col)*4;
     data[idx]=r;data[idx+1]=g;data[idx+2]=b;data[idx+3]=255;
   }
   spectroBuffer.col=(col+1)%bW;
-  // Draw: render from current col to end, then 0 to col
-  const imgData=new ImageData(data,bW,bH);
-  const offscreen=document.createElement('canvas');
-  offscreen.width=bW;offscreen.height=bH;
-  const oCtx=offscreen.getContext('2d');
-  oCtx.putImageData(imgData,0,0);
+  // Draw: render from current col to end, then 0 to col (reused offscreen)
+  spectroBuffer.oCtx.putImageData(spectroBuffer.imgData,0,0);
   ctx.clearRect(0,0,W,H);
-  // Draw right part (col→end) then left part (0→col)
   const splitX=spectroBuffer.col;
-  const scaleX=W/bW, scaleY=H/bH;
-  ctx.drawImage(offscreen,splitX,0,bW-splitX,bH,0,0,(bW-splitX)*scaleX,H);
-  ctx.drawImage(offscreen,0,0,splitX,bH,(bW-splitX)*scaleX,0,splitX*scaleX,H);
+  const scaleX=W/bW;
+  ctx.drawImage(spectroBuffer.offscreen,splitX,0,bW-splitX,bH,0,0,(bW-splitX)*scaleX,H);
+  ctx.drawImage(spectroBuffer.offscreen,0,0,splitX,bH,(bW-splitX)*scaleX,0,splitX*scaleX,H);
   // Current-time line
   ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(W-1,0);ctx.lineTo(W-1,H);ctx.stroke();
 }
 
 // ── Exercise state ─────────────────────────────────────────────────────────
-let exMode='random', exTarget=null, exHoldMs=0, exHoldStart=null;
+let exMode='random', exTarget=null;
 let exScore=0, exStreak=0, exBest=0;
-const HOLD_NEEDED=1500; // ms to hold within ±25 cents to score
+let scoredThisTarget=false;
+const EX_DIFFICULTY={
+  easy:  {cents:50, holdMs:1000, label:'Easy ±50¢'},
+  medium:{cents:35, holdMs:1250, label:'Medium ±35¢'},
+  hard:  {cents:25, holdMs:1500, label:'Hard ±25¢'}
+};
+let exDifficulty='easy';
+const EX_GRACE_MS=250;
+// Fresh hold-state: accumulates IN-ZONE dwell time (not wall-clock span), so
+// a brief (<grace) excursion neither advances nor resets the hold, and time
+// during the excursion is not wrongly credited toward completion.
+function freshHoldState(){return{prevT:null,dwell:0,lastInZone:null};}
+let exHoldState=freshHoldState();
+// Pure scoring step. Returns {inZone, progress:0..1, scored}. dt from real
+// timestamps → frame-rate independent. Verified against 3 regression tests.
+function exerciseStep(centsFromTarget, nowMs, state, cfg, graceMs){
+  const inZone=Math.abs(centsFromTarget)<=cfg.cents;
+  if(state.prevT===null) state.prevT=nowMs;
+  const dt=nowMs-state.prevT; state.prevT=nowMs;
+  if(inZone){
+    state.dwell=(state.dwell||0)+dt;   // accrue only in-zone time
+    state.lastInZone=nowMs;
+  } else if(state.lastInZone!==null && nowMs-state.lastInZone>graceMs){
+    state.dwell=0;                     // grace exceeded → reset dwell
+  }
+  const progress=Math.min(1,(state.dwell||0)/cfg.holdMs);
+  const scored=inZone && progress>=1;  // only award on an in-zone frame
+  if(scored) state.dwell=0;
+  return {inZone,progress,scored};
+}
 const RANGES={
   low:{min:48,max:59},mid:{min:60,max:71},high:{min:72,max:83},all:{min:48,max:83}
 };
@@ -729,6 +915,11 @@ function setMode(m){
   scaleIdx=0; nextNote();
 }
 function nextNote(){
+  // Streak = consecutive targets scored. Abandoning an unscored target breaks it.
+  if(exTarget!==null && !scoredThisTarget){
+    exStreak=0;
+    const el=document.getElementById('exStreak'); if(el) el.textContent=0;
+  }
   const rangeKey=document.getElementById('rangeSelect').value;
   const {min,max}=RANGES[rangeKey];
   let midi;
@@ -758,7 +949,7 @@ function setTargetFromPick(){
   setExTarget(midi);
 }
 function setExTarget(midi){
-  exTarget=midi; exHoldMs=0; exHoldStart=null;
+  exTarget=midi; exHoldState=freshHoldState(); scoredThisTarget=false;
   document.getElementById('exTargetNote').textContent=midiToName(midi);
   document.getElementById('exTargetHz').textContent=midiToFreq(midi).toFixed(1)+' Hz';
   document.getElementById('exFeedback').textContent='Match the target note';
@@ -801,8 +992,9 @@ function drawExercise(pitch){
     }
   }
 
-  // ±25 cent zone around target (gold band)
-  const centH=(H/(midiMax-midiMin))*(25/100);
+  // Tolerance zone around target (gold band), width from difficulty
+  const cfg=EX_DIFFICULTY[exDifficulty];
+  const centH=(H/(midiMax-midiMin))*(cfg.cents/100);
   const targetY=midiToY(exTarget);
   ctx.fillStyle=C.gold+'1a';
   ctx.fillRect(LABEL_W,targetY-centH,plotW,centH*2);
@@ -823,55 +1015,50 @@ function drawExercise(pitch){
     ctx.strokeStyle=C.teal+'cc';ctx.lineWidth=2;ctx.stroke();
   }
 
-  // Current dot
-  if(pitch>0){
+  // Current dot + scoring. Voiced frames use the sung pitch; dropout frames
+  // (pitch<=0) feed centsFromTarget=Infinity so silence is treated as
+  // out-of-zone and handled by the same grace logic.
+  const now=Date.now();
+  const voiced=pitch>0;
+  const centsFromTarget=voiced?1200*Math.log2(pitch/midiToFreq(exTarget)):Infinity;
+  const step=exerciseStep(centsFromTarget,now,exHoldState,cfg,EX_GRACE_MS);
+
+  if(voiced){
     const currentMidi=69+12*Math.log2(pitch/440);
-    const centsFromTarget=1200*Math.log2(pitch/midiToFreq(exTarget));
-    const inZone=Math.abs(centsFromTarget)<25;
     const y=midiToY(currentMidi);
     const dotX=W-10;
-
     const grd=ctx.createRadialGradient(dotX,y,0,dotX,y,14);
-    grd.addColorStop(0,(inZone?C.teal:C.rose)+'bb');
-    grd.addColorStop(1,(inZone?C.teal:C.rose)+'00');
+    grd.addColorStop(0,(step.inZone?C.teal:C.rose)+'bb');
+    grd.addColorStop(1,(step.inZone?C.teal:C.rose)+'00');
     ctx.beginPath();ctx.arc(dotX,y,14,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
-    ctx.beginPath();ctx.arc(dotX,y,5,0,Math.PI*2);ctx.fillStyle=inZone?C.teal:C.rose;ctx.fill();
-
+    ctx.beginPath();ctx.arc(dotX,y,5,0,Math.PI*2);ctx.fillStyle=step.inZone?C.teal:C.rose;ctx.fill();
     exHistory.push(currentMidi);
-    if(exHistory.length>80) exHistory.shift();
-
-    // Hold progress bar at bottom
-    if(inZone){
-      if(!exHoldStart) exHoldStart=Date.now();
-      exHoldMs=Date.now()-exHoldStart;
-      const pct=Math.min(1,exHoldMs/HOLD_NEEDED);
-      ctx.fillStyle=C.teal+'33';ctx.fillRect(LABEL_W,H-5,plotW,5);
-      ctx.fillStyle=C.teal+'99';ctx.fillRect(LABEL_W,H-5,plotW*pct,5);
-      if(exHoldMs>=HOLD_NEEDED){
-        exScore++;exStreak++;
-        if(exStreak>exBest) exBest=exStreak;
-        document.getElementById('exScore').textContent=exScore;
-        document.getElementById('exStreak').textContent=exStreak;
-        document.getElementById('exBest').textContent=exBest;
-        document.getElementById('exFeedback').textContent='✓ Matched!';
-        document.getElementById('exFeedback').style.color=C.teal;
-        exHoldStart=null;exHoldMs=0;
-        setTimeout(()=>nextNote(),800);
-      } else {
-        const diff=Math.round(centsFromTarget);
-        document.getElementById('exFeedback').textContent=`Hold… ${diff>0?'+'+diff:diff}¢`;
-        document.getElementById('exFeedback').style.color=C.teal;
-      }
-    } else {
-      exHoldStart=null;exHoldMs=0;exStreak=0;
-      document.getElementById('exStreak').textContent=0;
-      const diff=Math.round(centsFromTarget);
-      document.getElementById('exFeedback').textContent=diff>0?`↓ ${diff}¢ sharp`:`↑ ${Math.abs(diff)}¢ flat`;
-      document.getElementById('exFeedback').style.color=C.rose;
-    }
   } else {
     exHistory.push(0);
-    if(exHistory.length>80) exHistory.shift();
+  }
+  if(exHistory.length>80) exHistory.shift();
+
+  // Hold progress bar at bottom (driven by accumulated dwell)
+  ctx.fillStyle=C.teal+'33';ctx.fillRect(LABEL_W,H-5,plotW,5);
+  ctx.fillStyle=C.teal+'99';ctx.fillRect(LABEL_W,H-5,plotW*step.progress,5);
+
+  if(step.scored){
+    exScore++;exStreak++;scoredThisTarget=true;
+    if(exStreak>exBest) exBest=exStreak;
+    document.getElementById('exScore').textContent=exScore;
+    document.getElementById('exStreak').textContent=exStreak;
+    document.getElementById('exBest').textContent=exBest;
+    document.getElementById('exFeedback').textContent='✓ Matched!';
+    document.getElementById('exFeedback').style.color=C.teal;
+    setTimeout(()=>nextNote(),800);
+  } else if(voiced && step.inZone){
+    const diff=Math.round(centsFromTarget);
+    document.getElementById('exFeedback').textContent=`Hold… ${diff>0?'+'+diff:diff}¢`;
+    document.getElementById('exFeedback').style.color=C.teal;
+  } else if(voiced){
+    const diff=Math.round(centsFromTarget);
+    document.getElementById('exFeedback').textContent=diff>0?`↓ ${diff}¢ sharp`:`↑ ${Math.abs(diff)}¢ flat`;
+    document.getElementById('exFeedback').style.color=C.rose;
   }
   ctx.textAlign='left';
 }
@@ -906,20 +1093,35 @@ const VOWELS=[
   {label:"oo",f1:310,f2:870},{label:"uh",f1:710,f2:1220}
 ];
 let vowelHist=[];
+// Vowel-space mapping. Vertical follows IPA convention: closed vowels
+// (low F1: ee/oo) at TOP, open vowels (high F1: ah) at BOTTOM.
+// Horizontal is instructor preference (mirror of IPA): dark/back
+// (low F2: oo) LEFT, bright/front (high F2: ee) RIGHT.
+function vsX(f2,W){return ((f2-700)/2300)*(W-40)+20;}
+function vsY(f1,H){return ((f1-200)/700)*(H-40)+20;}
 function drawVowelSpace(formants){
-  const ctx=CTX['vowelCanvas'],W=CTX['vowelCanvasW']||260,H=CTX['vowelCanvasH']||180;
+  const ctx=CTX['vowelCanvas'],W=CTX['vowelCanvasW']||260,H=CTX['vowelCanvasH']||140;
   if(!ctx) return;
-  const f1Y=f1=>H-((f1-200)/700)*(H-40)-20;
-  const f2X=f2=>W-((f2-700)/2300)*(W-40)-20;
   ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
   ctx.strokeStyle=C.border;ctx.lineWidth=0.5;
-  [300,500,700].forEach(f1=>{const y=f1Y(f1);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
-  [1000,1500,2000,2500].forEach(f2=>{const x=f2X(f2);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
-  ctx.fillStyle=C.dim;ctx.font='9px monospace';
-  ctx.fillText('← F2',W-28,H-3);ctx.fillText('F1↓',3,10);
+  [300,500,700].forEach(f1=>{const y=vsY(f1,H);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
+  [1000,1500,2000,2500].forEach(f2=>{const x=vsX(f2,W);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+  ctx.fillStyle=C.dim;ctx.font='8px monospace';
+  ctx.textAlign='center';
+  ctx.fillText('closed',W/2,9);
+  ctx.fillText('open',W/2,H-3);
+  ctx.save();
+  ctx.translate(7,H/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('dark',0,0);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(W-3,H/2);ctx.rotate(Math.PI/2);
+  ctx.fillText('bright',0,0);
+  ctx.restore();
+  ctx.textAlign='left';
   VOWELS.forEach(({label,f1,f2})=>{
-    const x=f2X(f2),y=f1Y(f1);
-    ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);
+    const x=vsX(f2,W),y=vsY(f1,H);
+    ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);
     ctx.fillStyle=C.hi;ctx.fill();ctx.strokeStyle=C.border;ctx.lineWidth=1;ctx.stroke();
     ctx.fillStyle=C.dim;ctx.font='9px Georgia';ctx.textAlign='center';
     ctx.fillText(label,x,y+3);
@@ -927,13 +1129,13 @@ function drawVowelSpace(formants){
   if(vowelHist.length>1){
     ctx.beginPath();
     vowelHist.forEach(({f1,f2},i)=>{
-      const x=f2X(f2),y=f1Y(f1);
+      const x=vsX(f2,W),y=vsY(f1,H);
       if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     });
     ctx.strokeStyle=C.goldDim;ctx.lineWidth=1.5;ctx.stroke();
   }
   if(formants&&formants.f1&&formants.f2){
-    const x=f2X(formants.f2),y=f1Y(formants.f1);
+    const x=vsX(formants.f2,W),y=vsY(formants.f1,H);
     const grd=ctx.createRadialGradient(x,y,0,x,y,15);
     grd.addColorStop(0,C.gold+'88');grd.addColorStop(1,C.gold+'00');
     ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
@@ -977,13 +1179,17 @@ function drawPitchRange(){
   const counts={};midis.forEach(m=>{counts[m]=(counts[m]||0)+1;});
   const maxCount=Math.max(...Object.values(counts));
   const PAD=18,barW=Math.max(3,(W-PAD*2)/range);
-  const pLo=Math.max(0,((60-minM)/range)*(W-PAD*2)+PAD);
-  const pHi=Math.min(W,((72-minM)/range)*(W-PAD*2)+PAD+barW);
-  if(pHi>pLo){
-    ctx.fillStyle=C.gold+'18';ctx.fillRect(pLo,0,pHi-pLo,H-18);
-    ctx.fillStyle=C.goldDim;ctx.font='8px monospace';ctx.textAlign='center';
-    ctx.fillText('passaggio',(pLo+pHi)/2,H-20);
-  }
+  // Passaggio zone(s) for the selected voice type
+  const vt=VOICE_TYPES[voiceType]||VOICE_TYPES.general;
+  vt.passZones.forEach(([lo,hi])=>{
+    const pLo=Math.max(0,((lo-minM)/range)*(W-PAD*2)+PAD);
+    const pHi=Math.min(W,((hi-minM)/range)*(W-PAD*2)+PAD+barW);
+    if(pHi>pLo){
+      ctx.fillStyle=C.gold+'18';ctx.fillRect(pLo,0,pHi-pLo,H-18);
+      ctx.fillStyle=C.goldDim;ctx.font='8px monospace';ctx.textAlign='center';
+      ctx.fillText('passaggio',(pLo+pHi)/2,H-20);
+    }
+  });
   for(let m=minM;m<=maxM;m++){
     const x=((m-minM)/range)*(W-PAD*2)+PAD;
     const bH=((counts[m]||0)/maxCount)*(H-34);
@@ -1069,11 +1275,13 @@ function updateUI(pitch,formants,vibrato,sf,hnr,jitter,shimmer,tilt,register,fre
   document.getElementById('registerDebug').textContent=reg.debug||'';
   document.getElementById('registerDebug').style.opacity=dim(0.45);
 
-  const sfLevel=Math.min(100,(sf/80)*100);
+  // sf is now dB relative to the 0-2kHz band: ≈-40dB (speech/untrained) to
+  // ≈-5dB (strong ring). Map -40..-5 → 0..100%.
+  const sfLevel=active?Math.min(100,Math.max(0,(sf+40)/35*100)):0;
   const sfColor=sfLevel>65?C.gold:sfLevel>35?C.teal:C.dim;
   document.getElementById('sfBar').style.width=sfLevel+'%';
   document.getElementById('sfBar').style.background=`linear-gradient(90deg,${C.tealDim},${sfColor})`;
-  document.getElementById('sfStatus').textContent=sfLevel>65?'Strong':sfLevel>35?'Moderate':'Developing';
+  document.getElementById('sfStatus').textContent=active?(sfLevel>65?'Strong':sfLevel>35?'Moderate':'Developing')+` (${sf.toFixed(0)} dB)`:'–';
   document.getElementById('sfStatus').style.color=sfColor;
 
   const setF=(id,uid,val,lastVal)=>{
@@ -1127,9 +1335,15 @@ let AVG_WINDOW_MS=500;
 document.getElementById('avgWindowSelect').addEventListener('change',e=>{
   AVG_WINDOW_MS=parseInt(e.target.value);
 });
+document.getElementById('voiceTypeSelect').addEventListener('change',e=>{
+  voiceType=e.target.value;
+});
+document.getElementById('exDifficulty').addEventListener('change',e=>{
+  exDifficulty=e.target.value; exHoldState=freshHoldState();
+});
 const smoothBuf={f1:[],f2:[],f3:[],sf:[],hnr:[],jitter:[],shimmer:[],tilt:[]};
-function pushSmooth(key,val){
-  if(val<=0) return;
+function pushSmooth(key,val,allowNeg=false){
+  if(!allowNeg&&val<=0) return;
   const now=Date.now();
   smoothBuf[key].push({val,t:now});
   const cutoff=now-AVG_WINDOW_MS;
@@ -1195,9 +1409,7 @@ function analyse(){
     pitchHist=[...pitchHist.slice(-80),pitch];
     allPitches=[...allPitches,pitch];
     formants=findFormants(Array.from(timeData),sr);
-    const binHz=sr/fftSize;
-    const lo=Math.floor(2500/binHz),hi=Math.floor(3200/binHz);
-    sf=freqData.slice(lo,hi).reduce((a,b)=>a+b,0)/(hi-lo);
+    sf=calcSingerFormant(freqData,sr,fftSize);
     vibrato=detectVibrato(pitchHist);
     hnr=calcHNR(Array.from(timeData),sr,pitch);
     jitter=calcJitter(Array.from(timeData),sr,pitch);
@@ -1208,8 +1420,8 @@ function analyse(){
 
     // Push raw readings into rolling-average buffers
     pushSmooth('f1',formants.f1); pushSmooth('f2',formants.f2); pushSmooth('f3',formants.f3);
-    pushSmooth('sf',sf); pushSmooth('hnr',hnr); pushSmooth('jitter',jitter);
-    pushSmooth('shimmer',shimmer); pushSmooth('tilt',tilt);
+    pushSmooth('sf',sf,true); pushSmooth('hnr',hnr); pushSmooth('jitter',jitter);
+    pushSmooth('shimmer',shimmer); pushSmooth('tilt',tilt,true);
     pushRegister(register);
   }
 
@@ -1234,7 +1446,11 @@ function analyse(){
 // ── Start / stop ───────────────────────────────────────────────────────────
 async function startListening(){
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    // Raw, unprocessed audio: browser AGC normalizes amplitude (corrupting
+    // shimmer + level readings) and noise suppression eats harmonics.
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:false, noiseSuppression:false, autoGainControl:false
+    },video:false});
     audioCtx=new AudioContext();
     analyser=audioCtx.createAnalyser();
     analyser.fftSize=2048;analyser.smoothingTimeConstant=0.5;
@@ -1269,7 +1485,8 @@ function stopListening(){
   cancelAnimationFrame(raf);
   audioCtx?.close();audioCtx=null;analyser=null;
   pitchHist=[];vowelHist=[];healthHist=[];allPitches=[];
-  periodHist.length=0;recentPitches.length=0;
+  recentPitches.length=0;
+  exHoldState=freshHoldState();
   fmtSmooth.f1=[];fmtSmooth.f2=[];fmtSmooth.f3=[];
   resetSmooth();
   spectroBuffer.data=null;
@@ -1350,19 +1567,29 @@ function genVowelBuffer(f0,formants,sr,len){
   if(max>0) for(let i=0;i<len;i++) buf[i]=buf[i]/max*0.85;
   return buf;
 }
-// Approximate magnitude spectrum (0-255), same shape as analyser.getByteFrequencyData
+// Approximate magnitude spectrum (0-255), matching analyser.getByteFrequencyData
+// semantics: bytes are a LINEAR map of dB values from ANALYSER_MIN_DB..ANALYSER_MAX_DB.
+// Peak is normalized to -35dB so typical values sit inside the analyser's range.
 function computeFreqData(buf,sr,fftSize){
   const N=buf.length;
   const nBins=Math.floor(fftSize/2);
   const binHz=sr/fftSize;
   const maxBin=Math.min(nBins,Math.ceil(5500/binHz));
-  const out=new Uint8Array(nBins);
+  const mags=new Float32Array(nBins);
+  let maxMag=1e-12;
   for(let k=1;k<maxBin;k++){
     let re=0,im=0;
     const w=2*Math.PI*k/fftSize;
     for(let n=0;n<N;n++){const ang=w*n; re+=buf[n]*Math.cos(ang); im-=buf[n]*Math.sin(ang);}
-    const mag=Math.sqrt(re*re+im*im)/N;
-    out[k]=Math.min(255,Math.round(mag*600));
+    mags[k]=Math.sqrt(re*re+im*im)/N;
+    if(mags[k]>maxMag) maxMag=mags[k];
+  }
+  const out=new Uint8Array(nBins);
+  for(let k=1;k<maxBin;k++){
+    if(mags[k]<=0) continue;
+    const db=20*Math.log10(mags[k]/maxMag)-35; // peak lands at -35dB
+    const byte=Math.round((db-ANALYSER_MIN_DB)/(ANALYSER_MAX_DB-ANALYSER_MIN_DB)*255);
+    out[k]=Math.max(0,Math.min(255,byte));
   }
   return out;
 }
@@ -1373,7 +1600,6 @@ function runSelfTests(){
 
   // Save and clear stateful buffers so tests don't pollute a live session
   const savedFmt={f1:fmtSmooth.f1.slice(),f2:fmtSmooth.f2.slice(),f3:fmtSmooth.f3.slice()};
-  const savedPeriod=periodHist.slice();
 
   // 1. Pitch detection across a range
   [110,220,440].forEach(f0=>{
@@ -1414,14 +1640,28 @@ function runSelfTests(){
       pass: hnrNoisy<hnrClean});
   }
 
-  // 4. Jitter — perfectly periodic signal should be near 0
+  // 4. Jitter — perfectly periodic signal should be near 0, and (critically)
+  // vibrato must NOT read as jitter. A 6Hz ±50-cent vibrato is healthy
+  // classical technique; the old per-frame method scored it as pathological.
   {
-    periodHist.length=0;
     const buf=genTone(200,sr,len);
-    let j=0;
-    for(let i=0;i<6;i++) j=calcJitter(buf,sr,200);
+    const j=calcJitter(buf,sr,200);
     results.push({name:'Jitter — stable pitch reads near 0',
       vals:`${j.toFixed(3)}% (expected < 0.5%)`, pass: j<0.5});
+
+    // Vibrato-modulated tone: 200Hz carrier, 6Hz vibrato, ±50 cents
+    const vibBuf=new Float32Array(len);
+    let phase=0;
+    const centDev=50, vibRate=6;
+    for(let i=0;i<len;i++){
+      const cents=centDev*Math.sin(2*Math.PI*vibRate*i/sr);
+      const f=200*Math.pow(2,cents/1200);
+      phase+=2*Math.PI*f/sr;
+      vibBuf[i]=0.7*Math.sin(phase);
+    }
+    const jv=calcJitter(vibBuf,sr,200);
+    results.push({name:'Jitter — vibrato does NOT inflate jitter (6Hz ±50¢)',
+      vals:`${jv.toFixed(3)}% (expected < 1.04% clinical threshold)`, pass: jv<1.04});
   }
 
   // 5. Shimmer — constant amplitude signal should be near 0
@@ -1474,19 +1714,130 @@ function runSelfTests(){
       pass: passReg.label==='Passaggio'||passReg.label==='Mixed'});
   }
 
-  // 8. Smoothing buffers behave correctly
+  // 7b. Voice-type-aware register: same signal classified per voice type.
+  {
+    // E5 (~667Hz, midi 76), balanced harmonics → H1-H2≈1dB, falls to passaggio
+    // fallback. Soprano secondo zone [73,78] includes 76; baritone maxes at 64.
+    const f0=31*binHz;
+    const fd=computeFreqData(genHarmonicSeries(f0,[1.0,0.9,0.3,0.3],sr,len),sr,fftSize);
+    const rSop=detectRegister(f0,fd,sr,fftSize,VOICE_TYPES.soprano);
+    const rBar=detectRegister(f0,fd,sr,fftSize,VOICE_TYPES.baritone);
+    results.push({name:'Register — E5 balanced: Passaggio (soprano) vs not (baritone)',
+      vals:`soprano="${rSop.label}" baritone="${rBar.label}"`,
+      pass: rSop.label==='Passaggio' && rBar.label!=='Passaggio'});
+
+    // A4-ish (~431Hz, midi 69), H1-dominant → Falsetto for tenor, Head for
+    // soprano (falsettoMin null means falsetto label unused for female types).
+    const f0h=20*binHz;
+    const fdh=computeFreqData(genHarmonicSeries(f0h,[1.0,0.12,0.05,0.03],sr,len),sr,fftSize);
+    const rTen=detectRegister(f0h,fdh,sr,fftSize,VOICE_TYPES.tenor);
+    const rSop2=detectRegister(f0h,fdh,sr,fftSize,VOICE_TYPES.soprano);
+    results.push({name:'Register — H1-dominant: Falsetto (tenor) vs Head (soprano)',
+      vals:`tenor="${rTen.label}" soprano="${rSop2.label}"`,
+      pass: rTen.label==='Falsetto' && rSop2.label==='Head'});
+  }
+
+  // 8. Byte→dB conversion — getByteFrequencyData bytes are already dB-scaled;
+  // (b1−b2)*BYTE_TO_DB must recover the true amplitude ratio in dB. A 2:1
+  // amplitude ratio is 6.02dB. (This guards against the double-log bug where
+  // 20·log10(byte1/byte2) was applied to already-logarithmic values.)
+  {
+    const f0=16*binHz; // bin-aligned
+    const buf=genHarmonicSeries(f0,[1.0,0.5],sr,len);
+    const fd=computeFreqData(buf,sr,fftSize);
+    const b1=Math.round(f0/binHz), b2=Math.round(f0*2/binHz);
+    const h1=Math.max(fd[b1-1],fd[b1],fd[b1+1]);
+    const h2=Math.max(fd[b2-1],fd[b2],fd[b2+1]);
+    const measured=(h1-h2)*BYTE_TO_DB;
+    results.push({name:'Byte→dB — 2:1 amplitude ratio reads ≈6dB',
+      vals:`measured ${measured.toFixed(1)}dB (expected 6.0±1.5dB)`,
+      pass: Math.abs(measured-6.02)<1.5});
+  }
+
+  // 9. Singer's formant — ratio must respond to 2.5-3.2kHz resonance, and be
+  // volume-independent (it's a ratio, so scaling the signal shouldn't move it)
+  {
+    const resonant=genVowelBuffer(220,[700,1200,2800],sr,len);
+    const plain=genVowelBuffer(220,[700,1200],sr,len);
+    const sfR=calcSingerFormant(computeFreqData(resonant,sr,fftSize),sr,fftSize);
+    const sfP=calcSingerFormant(computeFreqData(plain,sr,fftSize),sr,fftSize);
+    results.push({name:"Singer's formant — 2.8kHz resonance raises the ratio",
+      vals:`resonant=${sfR.toFixed(1)}dB vs plain=${sfP.toFixed(1)}dB`,
+      pass: sfR>sfP+3});
+    const quiet=resonant.map(v=>v*0.1);
+    const sfQ=calcSingerFormant(computeFreqData(quiet,sr,fftSize),sr,fftSize);
+    results.push({name:"Singer's formant — volume-independent (ratio)",
+      vals:`loud=${sfR.toFixed(1)}dB vs 10x quieter=${sfQ.toFixed(1)}dB (should match)`,
+      pass: Math.abs(sfR-sfQ)<2});
+  }
+
+  // 10. Smoothing buffers behave correctly
   {
     resetSmooth();
     [100,102,98,101,99].forEach(v=>pushSmooth('hnr',v));
     const avg=avgSmooth('hnr');
     results.push({name:'Smoothing — rolling average of [100,102,98,101,99]',
       vals:`${avg.toFixed(2)} (expected 100.00)`, pass: Math.abs(avg-100)<0.01});
+    // Negative dB values (sf, tilt) must not be silently dropped
     resetSmooth();
+    [-20,-22,-18].forEach(v=>pushSmooth('tilt',v,true));
+    const avgNeg=avgSmooth('tilt');
+    results.push({name:'Smoothing — negative dB values are averaged, not dropped',
+      vals:`${avgNeg.toFixed(2)} (expected -20.00)`, pass: Math.abs(avgNeg+20)<0.01});
+    resetSmooth();
+  }
+
+  // 11. Vowel chart orientation — ee right of oo (instructor flip), ee above
+  // ah (IPA vertical convention). Guards against re-inverting either axis.
+  {
+    const okX=vsX(2650,260)>vsX(870,260);
+    const okY=vsY(280,180)<vsY(850,180);
+    results.push({name:'Vowel chart orientation — ee right of oo, ee above ah',
+      vals:`x(ee)=${vsX(2650,260).toFixed(0)} x(oo)=${vsX(870,260).toFixed(0)} y(ee)=${vsY(280,180).toFixed(0)} y(ah)=${vsY(850,180).toFixed(0)}`,
+      pass: okX&&okY});
+  }
+
+  // 12. Exercise scoring — dwell-based hold with grace period.
+  {
+    const cfg={cents:35,holdMs:1000}, grace=250;
+    const fresh=()=>({prevT:null,dwell:0,lastInZone:null});
+    // (a) continuous in-zone reaches scored
+    let s=fresh(),r;
+    for(let t=0;t<=1000;t+=50) r=exerciseStep(10,t,s,cfg,grace);
+    const contScored=r.scored;
+    // (b) 200ms sub-grace excursion doesn't reset; note still scores
+    s=fresh();
+    for(let t=0;t<=600;t+=50) r=exerciseStep(10,t,s,cfg,grace);
+    exerciseStep(99,650,s,cfg,grace);           // out (150ms since lastInZone)
+    exerciseStep(99,800,s,cfg,grace);           // out (200ms — within grace)
+    let graceScored=false;
+    for(let t=850;t<=1300;t+=50){ r=exerciseStep(10,t,s,cfg,grace); if(r.scored){graceScored=true;break;} }
+    // (c) 310ms excursion (> grace) resets dwell to 0
+    s=fresh();
+    for(let t=0;t<=600;t+=50) r=exerciseStep(10,t,s,cfg,grace);
+    exerciseStep(99,650,s,cfg,grace);
+    r=exerciseStep(99,960,s,cfg,grace);         // 310ms since lastInZone
+    const didReset=r.progress<0.01;
+    results.push({name:'Exercise scoring — dwell hold, sub-grace tolerated, over-grace resets',
+      vals:`continuous=${contScored}, grace-scored=${graceScored}, over-grace-progress≈0=${didReset}`,
+      pass: contScored===true && graceScored===true && didReset===true});
+  }
+
+  // 13. Synth mapping — vsX/vsY and synthCoordsToFormants are exact inverses.
+  // For each vowel, plot position → back to formants must round-trip.
+  {
+    const W=300,H=200; let maxErr=0;
+    VOWELS.forEach(v=>{
+      const x=vsX(v.f2,W), y=vsY(v.f1,H);
+      const {f1,f2}=synthCoordsToFormants(x,y,W,H);
+      maxErr=Math.max(maxErr,Math.abs(f1-v.f1),Math.abs(f2-v.f2));
+    });
+    results.push({name:'Synth mapping — vowel-space inverse round-trip (8 vowels)',
+      vals:`max error ${maxErr.toFixed(2)} Hz (expected < 1)`, pass: maxErr<1});
   }
 
   // Restore state
   fmtSmooth.f1=savedFmt.f1; fmtSmooth.f2=savedFmt.f2; fmtSmooth.f3=savedFmt.f3;
-  periodHist.length=0; savedPeriod.forEach(p=>periodHist.push(p));
 
   renderTestResults(results);
 }
@@ -1522,6 +1873,167 @@ function redrawAll(){
 }
 requestAnimationFrame(()=>requestAnimationFrame(redrawAll));
 window.addEventListener('resize',redrawAll);
+
+// ── Vowel synthesizer (original source-filter synthesis) ──────────────────
+// Inverse of vsX/vsY: canvas position → formant frequencies.
+// Top of pad = LOW F1 (closed vowels), left = LOW F2 (dark vowels).
+function synthCoordsToFormants(x,y,W,H){
+  const f2=700+2300*(x-20)/(W-40);
+  const f1=200+700*(y-20)/(H-40);
+  return {f1:Math.max(200,Math.min(900,f1)), f2:Math.max(700,Math.min(3000,f2))};
+}
+let synthF1=700, synthF2=1200; // neutral /uh/ default
+let synthCtx=null, synthNodes=null;
+function startSynth(){
+  if(!synthCtx) synthCtx=new AudioContext();
+  synthCtx.resume();
+  if(synthNodes) return;
+  const osc=synthCtx.createOscillator(); osc.type='sawtooth';
+  osc.frequency.value=parseFloat(document.getElementById('synthPitch').value);
+  const b1=synthCtx.createBiquadFilter(); b1.type='bandpass'; b1.Q.value=10; b1.frequency.value=synthF1;
+  const b2=synthCtx.createBiquadFilter(); b2.type='bandpass'; b2.Q.value=12; b2.frequency.value=synthF2;
+  const g1=synthCtx.createGain(); g1.gain.value=0.5;
+  const g2=synthCtx.createGain(); g2.gain.value=0.25;
+  const out=synthCtx.createGain(); out.gain.value=0.0;
+  osc.connect(b1).connect(g1).connect(out);
+  osc.connect(b2).connect(g2).connect(out);
+  out.connect(synthCtx.destination);
+  osc.start();
+  out.gain.setTargetAtTime(0.6,synthCtx.currentTime,0.02);
+  synthNodes={osc,b1,b2,out};
+}
+function stopSynth(){
+  if(!synthNodes) return;
+  const{osc,out}=synthNodes;
+  out.gain.setTargetAtTime(0,synthCtx.currentTime,0.05);
+  const nodes=synthNodes; synthNodes=null;
+  setTimeout(()=>{try{nodes.osc.stop();nodes.out.disconnect();}catch(e){}},200);
+}
+function retuneSynth(){
+  if(!synthNodes) return;
+  synthNodes.b1.frequency.setTargetAtTime(synthF1,synthCtx.currentTime,0.03);
+  synthNodes.b2.frequency.setTargetAtTime(synthF2,synthCtx.currentTime,0.03);
+}
+function drawSynthPad(){
+  const ctx=CTX['synthCanvas'],W=CTX['synthCanvasW']||260,H=CTX['synthCanvasH']||200;
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=C.border;ctx.lineWidth=0.5;
+  [300,500,700].forEach(f1=>{const y=vsY(f1,H);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
+  [1000,1500,2000,2500].forEach(f2=>{const x=vsX(f2,W);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+  ctx.fillStyle=C.dim;ctx.font='8px monospace';
+  ctx.textAlign='center';
+  ctx.fillText('closed',W/2,9);ctx.fillText('open',W/2,H-3);
+  ctx.save();ctx.translate(7,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('dark',0,0);ctx.restore();
+  ctx.save();ctx.translate(W-3,H/2);ctx.rotate(Math.PI/2);ctx.fillText('bright',0,0);ctx.restore();
+  ctx.textAlign='left';
+  VOWELS.forEach(({label,f1,f2})=>{
+    const x=vsX(f2,W),y=vsY(f1,H);
+    ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);
+    ctx.fillStyle=C.hi;ctx.fill();ctx.strokeStyle=C.border;ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=C.dim;ctx.font='9px Georgia';ctx.textAlign='center';
+    ctx.fillText(label,x,y+3);
+  });
+  // Current synth position marker
+  const mx=vsX(synthF2,W),my=vsY(synthF1,H);
+  const grd=ctx.createRadialGradient(mx,my,0,mx,my,16);
+  grd.addColorStop(0,C.gold+'aa');grd.addColorStop(1,C.gold+'00');
+  ctx.beginPath();ctx.arc(mx,my,16,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+  ctx.beginPath();ctx.arc(mx,my,6,0,Math.PI*2);ctx.fillStyle=C.gold;ctx.fill();
+  ctx.textAlign='left';
+}
+function synthSetFromEvent(e){
+  const canvas=document.getElementById('synthCanvas');
+  const rect=canvas.getBoundingClientRect();
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  const {f1,f2}=synthCoordsToFormants(x,y,rect.width,rect.height);
+  synthF1=f1; synthF2=f2;
+  retuneSynth(); drawSynthPad();
+}
+(function initSynth(){
+  const canvas=document.getElementById('synthCanvas');
+  if(!canvas) return;
+  let dragging=false;
+  canvas.addEventListener('pointerdown',e=>{dragging=true;startSynth();synthSetFromEvent(e);canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(dragging)synthSetFromEvent(e);});
+  const end=()=>{dragging=false;stopSynth();};
+  canvas.addEventListener('pointerup',end);
+  canvas.addEventListener('pointercancel',end);
+  canvas.addEventListener('pointerleave',()=>{if(dragging)end();});
+  const slider=document.getElementById('synthPitch');
+  slider.addEventListener('input',e=>{
+    const hz=parseFloat(e.target.value);
+    document.getElementById('synthPitchLabel').textContent=`${Math.round(hz)} Hz · ${freqToNote(hz).note}`;
+    if(synthNodes) synthNodes.osc.frequency.setTargetAtTime(hz,synthCtx.currentTime,0.02);
+  });
+  // Preset buttons — one per vowel
+  const wrap=document.getElementById('synthPresets');
+  VOWELS.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='ex-btn'; b.style.flex='none'; b.style.padding='5px 10px'; b.textContent=v.label;
+    b.addEventListener('click',()=>{
+      synthF1=v.f1; synthF2=v.f2;
+      startSynth(); retuneSynth(); drawSynthPad();
+      setTimeout(stopSynth,700);
+    });
+    wrap.appendChild(b);
+  });
+})();
+
+// ── Pink Trombone (lazy-loaded iframe, original by Neil Thapen, MIT) ────────
+// Loaded from a sibling file 'pinktrombone.html' the first time the tab opens.
+// If that file isn't present, show setup instructions instead of a broken frame.
+let tromboneLoaded=false;
+function loadTrombone(){
+  if(tromboneLoaded) return;
+  tromboneLoaded=true;
+  const frame=document.getElementById('tromboneFrame');
+  const note=document.getElementById('tromboneNote');
+  let settled=false;
+  frame.addEventListener('load',()=>{settled=true;});
+  frame.addEventListener('error',showMissing);
+  function showMissing(){
+    frame.style.display='none';
+    note.innerHTML='<strong>Pink Trombone file not found.</strong> Add '+
+      '<code>pinktrombone.html</code> to the same folder as this app '+
+      '(Neil Thapen\u2019s original, from dood.al/pinktrombone or the '+
+      'IMAGINARY/pink-trombone GitHub mirror), then reopen this tab. '+
+      'It runs offline and is used under the MIT License.';
+  }
+  frame.src='pinktrombone.html';
+  // Fallback: if the frame can't be reached (404s don't always fire 'error'
+  // on iframes), assume missing after a short grace period if never loaded.
+  setTimeout(()=>{ if(!settled) showMissing(); },4000);
+}
+
+
+// Reparents the LIVE canvas element so its identity in the CTX registry is
+// preserved and all draw functions keep targeting it while expanded.
+let fsReturn=null; // {canvas, parent, nextSibling}
+function openFullscreen(canvasId){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas||fsReturn) return;
+  fsReturn={canvas,parent:canvas.parentNode,nextSibling:canvas.nextSibling};
+  const ov=document.createElement('div');
+  ov.className='fs-overlay'; ov.id='fsOverlay';
+  const close=document.createElement('button');
+  close.className='fs-close'; close.textContent='✕ Close';
+  close.addEventListener('click',closeFullscreen);
+  ov.appendChild(close); ov.appendChild(canvas);
+  document.body.appendChild(ov);
+  requestAnimationFrame(redrawAll); // re-measure at overlay size
+}
+function closeFullscreen(){
+  if(!fsReturn) return;
+  fsReturn.parent.insertBefore(fsReturn.canvas,fsReturn.nextSibling);
+  document.getElementById('fsOverlay')?.remove();
+  fsReturn=null;
+  requestAnimationFrame(redrawAll);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFullscreen();});
+document.querySelectorAll('.fs-expand').forEach(b=>
+  b.addEventListener('click',()=>openFullscreen(b.dataset.fs)));
 
 // Start with a random target note
 setExTarget(64); // E4 default
