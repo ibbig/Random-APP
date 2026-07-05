@@ -452,6 +452,7 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
     if(t.dataset.tab!=='synth' && typeof stopSynth==='function') stopSynth();
     if(t.dataset.tab==='trombone' && typeof loadTrombone==='function') loadTrombone();
+    else if(typeof unloadTrombone==='function') unloadTrombone();
     requestAnimationFrame(()=>{redrawAll(); if(t.dataset.tab==='synth' && typeof drawSynthPad==='function') drawSynthPad();});
   });
 });
@@ -1981,18 +1982,18 @@ function synthSetFromEvent(e){
   });
 })();
 
-// ── Pink Trombone (lazy-loaded iframe, original by Neil Thapen, MIT) ────────
-// Loaded from a sibling file 'pinktrombone.html' the first time the tab opens.
-// If that file isn't present, show setup instructions instead of a broken frame.
-let tromboneLoaded=false;
+// ── Pink Trombone (iframe, original by Neil Thapen, MIT) ───────────────────
+// Loaded from the sibling 'pinktrombone/' folder each time the tab opens, and
+// fully unloaded when leaving so its audio stops (the audio lives inside the
+// iframe and can't be reached directly — clearing src tears it down).
 function loadTrombone(){
-  if(tromboneLoaded) return;
-  tromboneLoaded=true;
   const frame=document.getElementById('tromboneFrame');
   const note=document.getElementById('tromboneNote');
+  const cur=frame.getAttribute('src');
+  if(cur && cur!=='about:blank' && frame.style.display!=='none') return; // already loaded
+  frame.style.display='block';
   let settled=false;
-  frame.addEventListener('load',()=>{settled=true;});
-  frame.addEventListener('error',showMissing);
+  frame.onload=()=>{settled=true;};
   function showMissing(){
     frame.style.display='none';
     note.innerHTML='<strong>Pink Trombone not found.</strong> Add the Pink '+
@@ -2000,15 +2001,20 @@ function loadTrombone(){
       'app (so that <code>pinktrombone/index.html</code> exists), then reopen '+
       'this tab. It runs offline and is used under the MIT License.';
   }
-  // Build an absolute URL to the sibling pinktrombone/ folder from the
-  // directory this app is served from. This avoids any ambiguity about how a
-  // relative iframe src resolves on GitHub Pages project sites.
+  frame.onerror=showMissing;
+  // Absolute URL to the sibling pinktrombone/ folder, from the directory this
+  // app is served from — avoids relative-resolution issues on GitHub Pages.
   const baseDir=location.href.replace(/[?#].*$/,'').replace(/[^/]*$/,'');
   frame.src=baseDir+'pinktrombone/index.html';
-  // Fallback: if the frame can't be reached (404s don't always fire 'error'
-  // on iframes), assume missing after a short grace period if never loaded.
   setTimeout(()=>{ if(!settled) showMissing(); },4000);
 }
+function unloadTrombone(){
+  const frame=document.getElementById('tromboneFrame');
+  if(!frame) return;
+  const src=frame.getAttribute('src'); // attribute, not resolved property
+  if(src && src!=='about:blank'){ frame.src='about:blank'; frame.removeAttribute('src'); }
+}
+
 
 
 // Reparents the LIVE canvas element so its identity in the CTX registry is
