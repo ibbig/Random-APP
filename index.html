@@ -1995,13 +1995,16 @@ function loadTrombone(){
   frame.addEventListener('error',showMissing);
   function showMissing(){
     frame.style.display='none';
-    note.innerHTML='<strong>Pink Trombone file not found.</strong> Add '+
-      '<code>pinktrombone.html</code> to the same folder as this app '+
-      '(Neil Thapen\u2019s original, from dood.al/pinktrombone or the '+
-      'IMAGINARY/pink-trombone GitHub mirror), then reopen this tab. '+
-      'It runs offline and is used under the MIT License.';
+    note.innerHTML='<strong>Pink Trombone not found.</strong> Add the Pink '+
+      'Trombone project into a <code>pinktrombone/</code> folder next to this '+
+      'app (so that <code>pinktrombone/index.html</code> exists), then reopen '+
+      'this tab. It runs offline and is used under the MIT License.';
   }
-  frame.src='pinktrombone.html';
+  // Build an absolute URL to the sibling pinktrombone/ folder from the
+  // directory this app is served from. This avoids any ambiguity about how a
+  // relative iframe src resolves on GitHub Pages project sites.
+  const baseDir=location.href.replace(/[?#].*$/,'').replace(/[^/]*$/,'');
+  frame.src=baseDir+'pinktrombone/index.html';
   // Fallback: if the frame can't be reached (404s don't always fire 'error'
   // on iframes), assume missing after a short grace period if never loaded.
   setTimeout(()=>{ if(!settled) showMissing(); },4000);
