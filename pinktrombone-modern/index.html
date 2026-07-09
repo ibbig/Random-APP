@@ -6,12 +6,31 @@
   <title>Pink Trombone</title>
   <script src="./pink-trombone.min.js" type="module"></script>
   <style>
-    html,body{margin:0;padding:0;background:#0f0e17;overflow:hidden;height:100%}
-    pink-trombone{display:block;width:100%;height:100%}
+    html,body{
+      margin:0; padding:0; height:100%; background:#0f0e17;
+      overflow:hidden;
+    }
+    /* Center the synth and give it the portrait-ish proportions Pink Trombone
+       expects. Without a constrained box it stretches across a wide iframe and
+       renders tiny in the corner with the controls cut off. */
+    #ptWrap{
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      padding:8px; box-sizing:border-box;
+    }
+    pink-trombone{
+      display:block;
+      width:100%;
+      height:100%;
+      max-width:640px;   /* keeps it from stretching too wide on desktop */
+      max-height:820px;  /* tract + 200px glottis + 100px buttons + gaps */
+    }
   </style>
 </head>
 <body>
-  <pink-trombone></pink-trombone>
+  <div id="ptWrap">
+    <pink-trombone></pink-trombone>
+  </div>
   <script>
     // Modern AudioWorklet Pink Trombone. Original by Neil Thapen; zakaton port.
     // MIT License. The port handles iOS tap-to-resume internally.
