@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pink Trombone</title>
+  <script src="./pink-trombone.min.js" type="module"></script>
+  <style>
+    html,body{margin:0;padding:0;background:#0f0e17;overflow:hidden;height:100%}
+    pink-trombone{display:block;width:100%;height:100%}
+  </style>
+</head>
+<body>
+  <pink-trombone></pink-trombone>
+  <script>
+    // Modern AudioWorklet Pink Trombone. Original by Neil Thapen; zakaton port.
+    // MIT License. The port handles iOS tap-to-resume internally.
+    const el = document.querySelector("pink-trombone");
+    el.addEventListener("load", () => {
+      el.setAudioContext().then(() => {
+        el.enableUI();
+        el.startUI();
+        el.connect(el.audioContext.destination);
+      });
+    });
+  </script>
+</body>
+</html>

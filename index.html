@@ -374,6 +374,11 @@ canvas { display: block; width: 100%; border-radius: 4px; }
       tract: drag the tongue and add constrictions to shape vowels and
       consonants directly. Created by Neil Thapen, used here under the MIT
       License (dood.al/pinktrombone). It runs entirely offline once loaded.
+      <br><br>
+      <em>On iPhone/iPad:</em> tap directly on the vocal tract to start the
+      sound (iOS requires a tap inside the model to enable audio). If it stays
+      silent, make sure your ringer/silent switch is off — iOS mutes web audio
+      when the phone is set to silent.
     </div>
   </div>
 </div>
@@ -1445,27 +1450,35 @@ function analyse(){
 }
 
 // ── Start / stop ───────────────────────────────────────────────────────────
+
 async function startListening(){
   try{
     // Raw, unprocessed audio: browser AGC normalizes amplitude (corrupting
-    // shimmer + level readings) and noise suppression eats harmonics.
-    const stream=await navigator.mediaDevices.getUserMedia({audio:{
-      echoCancellation:false, noiseSuppression:false, autoGainControl:false
-    },video:false});
-    audioCtx=new AudioContext();
+    // shimmer + level readings) and noise suppression eats harmonics. iOS
+    // sometimes rejects these constraints, so fall back to default audio.
+    let stream;
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({audio:{
+        echoCancellation:false, noiseSuppression:false, autoGainControl:false
+      },video:false});
+    }catch(constraintErr){
+      stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    }
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    // iOS starts the AudioContext suspended; it must be resumed after the user
+    // gesture (the Listen tap) or the analyser only ever sees silence.
+    if(audioCtx.state==='suspended'){ try{ await audioCtx.resume(); }catch(e){} }
     analyser=audioCtx.createAnalyser();
-    analyser.fftSize=2048;analyser.smoothingTimeConstant=0.5;
+    analyser.fftSize=2048; analyser.smoothingTimeConstant=0.5;
     audioCtx.createMediaStreamSource(stream).connect(analyser);
-    listening=true;sessionStart=Date.now();
+    listening=true; sessionStart=Date.now();
     document.getElementById('listenBtn').textContent='◼ Stop';
     document.getElementById('listenBtn').classList.add('active');
     document.getElementById('idle').style.display='none';
-    document.getElementById('error').style.display='none';
+    document.getElementById('error').textContent='';
     raf=requestAnimationFrame(analyse);
   }catch(e){
-    const err=document.getElementById('error');
-    err.textContent='Microphone access denied. Please allow microphone access and try again.';
-    err.style.display='block';
+    document.getElementById('error').textContent='Microphone access denied. Please allow microphone access and try again.';
   }
 }
 
@@ -1998,14 +2011,14 @@ function loadTrombone(){
     frame.style.display='none';
     note.innerHTML='<strong>Pink Trombone not found.</strong> Add the Pink '+
       'Trombone project into a <code>pinktrombone/</code> folder next to this '+
-      'app (so that <code>pinktrombone/index.html</code> exists), then reopen '+
+      'app (so that <code>pinktrombone-modern/index.html</code> exists), then reopen '+
       'this tab. It runs offline and is used under the MIT License.';
   }
   frame.onerror=showMissing;
   // Absolute URL to the sibling pinktrombone/ folder, from the directory this
   // app is served from — avoids relative-resolution issues on GitHub Pages.
   const baseDir=location.href.replace(/[?#].*$/,'').replace(/[^/]*$/,'');
-  frame.src=baseDir+'pinktrombone/index.html';
+  frame.src=baseDir+'pinktrombone-modern/index.html';
   setTimeout(()=>{ if(!settled) showMissing(); },4000);
 }
 function unloadTrombone(){
