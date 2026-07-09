@@ -4,26 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pink Trombone</title>
-  <script src="./pink-trombone.min.js" type="module"></script>
+  <!-- Load the readable module source (patched glottis/tract coordinate + px
+       fixes) instead of the pre-bundled pink-trombone.min.js. -->
+  <script src="./script/component.js" type="module"></script>
   <style>
-    html,body{
-      margin:0; padding:0; height:100%; background:#0f0e17;
-      overflow:hidden;
-    }
-    /* Center the synth and give it the portrait-ish proportions Pink Trombone
-       expects. Without a constrained box it stretches across a wide iframe and
-       renders tiny in the corner with the controls cut off. */
+    html,body{ margin:0; padding:0; height:100%; background:#0f0e17; overflow:hidden; }
     #ptWrap{
       position:absolute; inset:0;
       display:flex; align-items:center; justify-content:center;
-      padding:8px; box-sizing:border-box;
+      padding:6px; box-sizing:border-box;
     }
+    /* Portrait-ish box. Height must fit the internal grid:
+       tract (auto) + 200px glottis + 100px buttons + gaps. */
     pink-trombone{
-      display:block;
-      width:100%;
-      height:100%;
-      max-width:640px;   /* keeps it from stretching too wide on desktop */
-      max-height:820px;  /* tract + 200px glottis + 100px buttons + gaps */
+      display:block; width:100%; height:100%;
+      max-width:600px; max-height:760px;
     }
   </style>
 </head>
@@ -32,7 +27,8 @@
     <pink-trombone></pink-trombone>
   </div>
   <script>
-    // Modern AudioWorklet Pink Trombone. Original by Neil Thapen; zakaton port.
+    // Modern AudioWorklet Pink Trombone. Original by Neil Thapen; zakaton port,
+    // with small local fixes to the slider positioning + pointer coordinates.
     // MIT License. The port handles iOS tap-to-resume internally.
     const el = document.querySelector("pink-trombone");
     el.addEventListener("load", () => {

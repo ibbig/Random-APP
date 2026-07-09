@@ -77,6 +77,11 @@ class TractUI {
       this._processor = event.detail.processor;
       this._resize();
       this._drawTract();
+      // Re-run once after layout settles (container may be 0-width at first
+      // paint), and on every window resize / orientation change so the tract
+      // scales to fit narrow phone screens instead of overflowing.
+      requestAnimationFrame(() => { this._resize(); this._drawTract(); });
+      window.addEventListener("resize", () => { this._resize(); this._drawTract(); });
     });
     this._container.addEventListener("didGetParameter", (event) => {
       const parameterName = event.detail.parameterName;
@@ -157,9 +162,15 @@ class TractUI {
   }
 
   _resizeCanvases() {
+    const nativeW = this._canvas.width;   // 600
+    const nativeH = this._canvas.height;  // 500
+    const availW = this._container.offsetWidth;
+    // Fit to available width, preserving aspect ratio.
+    const dispW = Math.min(availW, nativeW * 4); // don't blow up absurdly
+    const dispH = dispW * (nativeH / nativeW);
     for (let id in this._canvases) {
-      //this._canvases[id].style.width = this._container.offsetWidth;
-      this._canvases[id].style.height = this._container.offsetHeight;
+      this._canvases[id].style.width = dispW + "px";
+      this._canvases[id].style.height = dispH + "px";
     }
   }
 
@@ -524,11 +535,15 @@ class TractUI {
   }
 
   _getEventX(event) {
-    const x = (event.pageX - event.target.offsetLeft) * this._tract.scalar - this._tract.origin.x;
+    const _r = event.target.getBoundingClientRect();
+    const _cx = (event.clientX !== undefined ? event.clientX : event.pageX);
+    const x = (_cx - _r.left) * this._tract.scalar - this._tract.origin.x;
     return x;
   }
   _getEventY(event) {
-    const y = (event.pageY - event.target.offsetTop) * this._tract.scalar - this._tract.origin.y;
+    const _r = event.target.getBoundingClientRect();
+    const _cy = (event.clientY !== undefined ? event.clientY : event.pageY);
+    const y = (_cy - _r.top) * this._tract.scalar - this._tract.origin.y;
     return y;
   }
 

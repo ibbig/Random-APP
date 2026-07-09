@@ -181,11 +181,11 @@ class GlottisUI {
 
                     if(parameterName == "frequency") {
                         interpolation = Math.clamp(((value-this._frequency.min)/this._frequency.range));
-                        this._slider.style.left = interpolation * this._container.offsetWidth - (this._slider.offsetWidth/2);
+                        this._slider.style.left = (interpolation * this._container.offsetWidth - (this._slider.offsetWidth/2)) + "px";
                     }
                     else {
                         interpolation = 1 - ((Math.acos(1 - value) / (Math.PI*0.5)));
-                        this._slider.style.top = interpolation * this._container.offsetHeight - (this._slider.offsetHeight/2);
+                        this._slider.style.top = (interpolation * this._container.offsetHeight - (this._slider.offsetHeight/2)) + "px";
                     }
                 }    
             }
@@ -199,9 +199,12 @@ class GlottisUI {
 
     _eventCallback(event) {
         if(this._isActive) {
+            const _rect = this._container.getBoundingClientRect();
+            const _cx = (event.clientX !== undefined ? event.clientX : event.pageX);
+            const _cy = (event.clientY !== undefined ? event.clientY : event.pageY);
             const interpolation = {
-                vertical : Math.clamp((event.pageY - this._container.offsetTop)/this._container.offsetHeight, 0, 0.99),
-                horizontal : Math.clamp((event.pageX - this._container.offsetLeft)/this._container.offsetWidth, 0, 0.99),
+                vertical : Math.clamp((_cy - _rect.top)/_rect.height, 0, 0.99),
+                horizontal : Math.clamp((_cx - _rect.left)/_rect.width, 0, 0.99),
             };
 
             const frequency = this._frequency.interpolate(interpolation.horizontal);
