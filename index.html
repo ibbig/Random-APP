@@ -1214,7 +1214,7 @@ function drawPitchRange(){
 }
 
 // ── State ─────────────────────────────────────────────────────────────────
-let audioCtx=null,analyser=null,raf=null,listening=false;
+let audioCtx=null,analyser=null,raf=null,listening=false,micStream=null;
 let pitchHist=[],sessionStart=null;
 const savedSessions=[];
 const last={note:'–',hz:'',cents:'–',centsLabel:'',centsColor:C.dim,
@@ -1453,6 +1453,12 @@ function analyse(){
 
 async function startListening(){
   try{
+    // Clean up any leftover context/stream from a previous session first —
+    // iOS caps the number of live AudioContexts and will silently refuse to
+    // start a new one (or leave it suspended) if the old one is still around.
+    if(audioCtx){ try{ await audioCtx.close(); }catch(e){} audioCtx=null; }
+    if(micStream){ try{ micStream.getTracks().forEach(t=>t.stop()); }catch(e){} micStream=null; }
+
     // Raw, unprocessed audio: browser AGC normalizes amplitude (corrupting
     // shimmer + level readings) and noise suppression eats harmonics. iOS
     // sometimes rejects these constraints, so fall back to default audio.
@@ -1464,6 +1470,7 @@ async function startListening(){
     }catch(constraintErr){
       stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
     }
+    micStream=stream;
     audioCtx=new (window.AudioContext||window.webkitAudioContext)();
     // iOS starts the AudioContext suspended; it must be resumed after the user
     // gesture (the Listen tap) or the analyser only ever sees silence.
@@ -1497,6 +1504,7 @@ function stopListening(){
     renderSessions();
   }
   cancelAnimationFrame(raf);
+  if(micStream){ try{ micStream.getTracks().forEach(t=>t.stop()); }catch(e){} micStream=null; }
   audioCtx?.close();audioCtx=null;analyser=null;
   pitchHist=[];vowelHist=[];healthHist=[];allPitches=[];
   recentPitches.length=0;

@@ -1,1 +1,0 @@
-var palePink = "#FFEEF5";
