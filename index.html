@@ -55,7 +55,6 @@ canvas { display: block; width: 100%; border-radius: 4px; }
 #spectroCanvas { height: 180px; }
 #healthCanvas { height: 130px; }
 #rangeCanvas { height: 95px; }
-#synthCanvas { height: 200px; }
 /* Exercise tab */
 .ex-target { text-align: center; padding: 18px 0 10px; }
 .ex-note { font-size: 64px; font-family: monospace; font-weight: normal; line-height: 1; }
@@ -96,7 +95,6 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   <div class="tab active" data-tab="live">Live</div>
   <div class="tab" data-tab="health">Health</div>
   <div class="tab" data-tab="exercise">Exercise</div>
-  <div class="tab" data-tab="synth">Synth</div>
   <div class="tab" data-tab="trombone">Trombone</div>
   <div class="tab" data-tab="session">Session</div>
   <div class="tab" data-tab="test">Test</div>
@@ -343,24 +341,6 @@ canvas { display: block; width: 100%; border-radius: 4px; }
   </div>
 </div>
 
-<!-- ── SYNTH ── -->
-<div class="tab-panel" id="tab-synth">
-  <div class="card">
-    <div class="card-label">Vowel Synthesizer</div>
-    <canvas id="synthCanvas" style="touch-action:none"></canvas>
-    <div class="hint" style="margin-top:5px">Drag on the pad to shape the vowel: left = dark/back (oo), right = bright/front (ee), top = closed, bottom = open (ah). This is the same chart the Live tab plots your voice on.</div>
-  </div>
-  <div class="card">
-    <label style="font-size:11px;color:#9a9488;display:flex;align-items:center;gap:8px">
-      Pitch:
-      <input type="range" id="synthPitch" min="80" max="400" value="180" style="flex:1">
-      <span id="synthPitchLabel" style="font-family:monospace;font-size:11px;color:#f5f0e8;min-width:80px">180 Hz</span>
-    </label>
-    <div id="synthPresets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
-    <div class="hint" style="margin-top:8px">Two bandpass resonators on a buzzy source — a minimal source-filter voice, so it sounds vowel-like rather than human. Playing it through speakers near the mic while Listening will land the Live vowel dot in roughly the same spot (a handy self-test). Inspired by Neil Thapen's Pink Trombone (dood.al/pinktrombone).</div>
-  </div>
-</div>
-
 <!-- ── TROMBONE ── -->
 <div class="tab-panel" id="tab-trombone">
   <div class="card" style="padding:0;overflow:hidden">
@@ -445,7 +425,7 @@ function setupCanvas(id){
   CTX[id]=ctx; CTX[id+'W']=rect.width; CTX[id+'H']=rect.height;
 }
 function setupAllCanvases(){
-  ['vowelCanvas','spectroCanvas','healthCanvas','rangeCanvas','exerciseCanvas','spectroExCanvas','synthCanvas'].forEach(setupCanvas);
+  ['vowelCanvas','spectroCanvas','healthCanvas','rangeCanvas','exerciseCanvas','spectroExCanvas'].forEach(setupCanvas);
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -455,10 +435,9 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-    if(t.dataset.tab!=='synth' && typeof stopSynth==='function') stopSynth();
     if(t.dataset.tab==='trombone' && typeof loadTrombone==='function') loadTrombone();
     else if(typeof unloadTrombone==='function') unloadTrombone();
-    requestAnimationFrame(()=>{redrawAll(); if(t.dataset.tab==='synth' && typeof drawSynthPad==='function') drawSynthPad();});
+    requestAnimationFrame(()=>{redrawAll();});
   });
 });
 
@@ -682,18 +661,36 @@ function calcJitter(buf,sr,pitch){
 // ── DSP: Shimmer ───────────────────────────────────────────────────────────
 function calcShimmer(buf,sr,pitch){
   if(pitch<=0) return 0;
-  const period=Math.round(sr/pitch);
-  if(period<2) return 0;
-  const amps=[];
-  for(let i=0;i+period<buf.length;i+=period){
-    const rms=Math.sqrt(buf.slice(i,i+period).reduce((s,v)=>s+v*v,0)/period);
-    amps.push(rms);
+  const T0=sr/pitch;
+  if(T0<16||T0*3>buf.length) return 0;
+  // Detect successive cycle boundaries by waveform matching (same approach as
+  // jitter), then take each cycle's PEAK absolute amplitude. Peak-of-detected-
+  // cycle is the clinical definition; the old fixed-window RMS drifted against
+  // the waveform and inflated readings on real voices.
+  const dMax=Math.max(2,Math.floor(T0*0.12));
+  const d0=Math.round(T0), W=Math.floor(T0);
+  const amps=[]; let p=0;
+  while(p+d0+dMax+W<buf.length){
+    // find cycle length near nominal by best correlation
+    let bestR=-2,bestD=d0;
+    for(let d=d0-dMax;d<=d0+dMax;d++){
+      let num=0,e1=0,e2=0;
+      for(let i=0;i<W;i++){const a=buf[p+i],b=buf[p+d+i];num+=a*b;e1+=a*a;e2+=b*b;}
+      const r=num/Math.sqrt(e1*e2+1e-12);
+      if(r>bestR){bestR=r;bestD=d;}
+    }
+    // peak absolute amplitude within this cycle
+    let peak=0;
+    for(let i=0;i<bestD;i++){const v=Math.abs(buf[p+i]);if(v>peak)peak=v;}
+    amps.push(peak);
+    p+=bestD;
   }
   if(amps.length<3) return 0;
+  const meanAmp=amps.reduce((a,b)=>a+b,0)/amps.length;
+  if(meanAmp<1e-6) return 0;
+  // Mean absolute cycle-to-cycle difference, as % of mean peak amplitude.
   let sumDiff=0;
   for(let i=1;i<amps.length;i++) sumDiff+=Math.abs(amps[i]-amps[i-1]);
-  const meanAmp=amps.reduce((a,b)=>a+b,0)/amps.length;
-  if(meanAmp<1e-8) return 0;
   return Math.min(20,(sumDiff/(amps.length-1))/meanAmp*100);
 }
 
@@ -1452,16 +1449,14 @@ function analyse(){
 // ── Start / stop ───────────────────────────────────────────────────────────
 
 async function startListening(){
+  // Release any leftover stream from a previous session synchronously (no
+  // await — an await here would break the iOS user-gesture chain and cause the
+  // 2nd Listen tap's getUserMedia/resume to be rejected). Close the old
+  // context without awaiting; it tears down on its own.
+  if(micStream){ try{ micStream.getTracks().forEach(t=>t.stop()); }catch(e){} micStream=null; }
+  if(audioCtx){ try{ audioCtx.close(); }catch(e){} audioCtx=null; }
   try{
-    // Clean up any leftover context/stream from a previous session first —
-    // iOS caps the number of live AudioContexts and will silently refuse to
-    // start a new one (or leave it suspended) if the old one is still around.
-    if(audioCtx){ try{ await audioCtx.close(); }catch(e){} audioCtx=null; }
-    if(micStream){ try{ micStream.getTracks().forEach(t=>t.stop()); }catch(e){} micStream=null; }
-
-    // Raw, unprocessed audio: browser AGC normalizes amplitude (corrupting
-    // shimmer + level readings) and noise suppression eats harmonics. iOS
-    // sometimes rejects these constraints, so fall back to default audio.
+    // Request the mic FIRST, still inside the gesture, before any other await.
     let stream;
     try{
       stream=await navigator.mediaDevices.getUserMedia({audio:{
@@ -1472,12 +1467,12 @@ async function startListening(){
     }
     micStream=stream;
     audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    // iOS starts the AudioContext suspended; it must be resumed after the user
-    // gesture (the Listen tap) or the analyser only ever sees silence.
-    if(audioCtx.state==='suspended'){ try{ await audioCtx.resume(); }catch(e){} }
     analyser=audioCtx.createAnalyser();
     analyser.fftSize=2048; analyser.smoothingTimeConstant=0.5;
     audioCtx.createMediaStreamSource(stream).connect(analyser);
+    // iOS starts the context suspended; resume it. Resume can complete after
+    // this function returns; that's fine, the analyse loop tolerates it.
+    if(audioCtx.state!=='running'){ audioCtx.resume().catch(()=>{}); }
     listening=true; sessionStart=Date.now();
     document.getElementById('listenBtn').textContent='◼ Stop';
     document.getElementById('listenBtn').classList.add('active');
@@ -1485,7 +1480,7 @@ async function startListening(){
     document.getElementById('error').textContent='';
     raf=requestAnimationFrame(analyse);
   }catch(e){
-    document.getElementById('error').textContent='Microphone access denied. Please allow microphone access and try again.';
+    document.getElementById('error').textContent='Microphone error: '+(e&&e.name?e.name:e)+'. Tap Listen to try again.';
   }
 }
 
@@ -1692,6 +1687,17 @@ function runSelfTests(){
     const sh=calcShimmer(buf,sr,200);
     results.push({name:'Shimmer — constant amplitude reads near 0',
       vals:`${sh.toFixed(3)}% (expected < 1%)`, pass: sh<1});
+    // Realistic singing (6Hz amplitude vibrato ±15% + light noise) must stay in
+    // the healthy range — the old fixed-window RMS inflated this above the
+    // clinical 3.81% threshold, making it "always out of range" on real voices.
+    const vb=new Float32Array(len);
+    for(let i=0;i<len;i++){
+      const vib=1+0.15*Math.sin(2*Math.PI*6*i/sr);
+      vb[i]=vib*(0.5*Math.sin(2*Math.PI*200*i/sr)+0.2*Math.sin(2*Math.PI*400*i/sr))+(Math.random()*2-1)*0.03;
+    }
+    const shv=calcShimmer(vb,sr,200);
+    results.push({name:'Shimmer — realistic vibrato+noise stays in healthy range',
+      vals:`${shv.toFixed(2)}% (expected < 3.81% clinical threshold)`, pass: shv<3.81});
   }
 
   // 6. Spectral tilt — brighter spectrum should have flatter (less negative) tilt
@@ -1896,112 +1902,13 @@ function redrawAll(){
 requestAnimationFrame(()=>requestAnimationFrame(redrawAll));
 window.addEventListener('resize',redrawAll);
 
-// ── Vowel synthesizer (original source-filter synthesis) ──────────────────
-// Inverse of vsX/vsY: canvas position → formant frequencies.
-// Top of pad = LOW F1 (closed vowels), left = LOW F2 (dark vowels).
+// Inverse of vsX/vsY (canvas position → formant frequencies). Retained because
+// the self-test uses it to verify the Live tab's vowel-space mapping.
 function synthCoordsToFormants(x,y,W,H){
   const f2=700+2300*(x-20)/(W-40);
   const f1=200+700*(y-20)/(H-40);
   return {f1:Math.max(200,Math.min(900,f1)), f2:Math.max(700,Math.min(3000,f2))};
 }
-let synthF1=700, synthF2=1200; // neutral /uh/ default
-let synthCtx=null, synthNodes=null;
-function startSynth(){
-  if(!synthCtx) synthCtx=new AudioContext();
-  synthCtx.resume();
-  if(synthNodes) return;
-  const osc=synthCtx.createOscillator(); osc.type='sawtooth';
-  osc.frequency.value=parseFloat(document.getElementById('synthPitch').value);
-  const b1=synthCtx.createBiquadFilter(); b1.type='bandpass'; b1.Q.value=10; b1.frequency.value=synthF1;
-  const b2=synthCtx.createBiquadFilter(); b2.type='bandpass'; b2.Q.value=12; b2.frequency.value=synthF2;
-  const g1=synthCtx.createGain(); g1.gain.value=0.5;
-  const g2=synthCtx.createGain(); g2.gain.value=0.25;
-  const out=synthCtx.createGain(); out.gain.value=0.0;
-  osc.connect(b1).connect(g1).connect(out);
-  osc.connect(b2).connect(g2).connect(out);
-  out.connect(synthCtx.destination);
-  osc.start();
-  out.gain.setTargetAtTime(0.6,synthCtx.currentTime,0.02);
-  synthNodes={osc,b1,b2,out};
-}
-function stopSynth(){
-  if(!synthNodes) return;
-  const{osc,out}=synthNodes;
-  out.gain.setTargetAtTime(0,synthCtx.currentTime,0.05);
-  const nodes=synthNodes; synthNodes=null;
-  setTimeout(()=>{try{nodes.osc.stop();nodes.out.disconnect();}catch(e){}},200);
-}
-function retuneSynth(){
-  if(!synthNodes) return;
-  synthNodes.b1.frequency.setTargetAtTime(synthF1,synthCtx.currentTime,0.03);
-  synthNodes.b2.frequency.setTargetAtTime(synthF2,synthCtx.currentTime,0.03);
-}
-function drawSynthPad(){
-  const ctx=CTX['synthCanvas'],W=CTX['synthCanvasW']||260,H=CTX['synthCanvasH']||200;
-  if(!ctx) return;
-  ctx.clearRect(0,0,W,H);ctx.fillStyle=C.surface;ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle=C.border;ctx.lineWidth=0.5;
-  [300,500,700].forEach(f1=>{const y=vsY(f1,H);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
-  [1000,1500,2000,2500].forEach(f2=>{const x=vsX(f2,W);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
-  ctx.fillStyle=C.dim;ctx.font='8px monospace';
-  ctx.textAlign='center';
-  ctx.fillText('closed',W/2,9);ctx.fillText('open',W/2,H-3);
-  ctx.save();ctx.translate(7,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('dark',0,0);ctx.restore();
-  ctx.save();ctx.translate(W-3,H/2);ctx.rotate(Math.PI/2);ctx.fillText('bright',0,0);ctx.restore();
-  ctx.textAlign='left';
-  VOWELS.forEach(({label,f1,f2})=>{
-    const x=vsX(f2,W),y=vsY(f1,H);
-    ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);
-    ctx.fillStyle=C.hi;ctx.fill();ctx.strokeStyle=C.border;ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle=C.dim;ctx.font='9px Georgia';ctx.textAlign='center';
-    ctx.fillText(label,x,y+3);
-  });
-  // Current synth position marker
-  const mx=vsX(synthF2,W),my=vsY(synthF1,H);
-  const grd=ctx.createRadialGradient(mx,my,0,mx,my,16);
-  grd.addColorStop(0,C.gold+'aa');grd.addColorStop(1,C.gold+'00');
-  ctx.beginPath();ctx.arc(mx,my,16,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
-  ctx.beginPath();ctx.arc(mx,my,6,0,Math.PI*2);ctx.fillStyle=C.gold;ctx.fill();
-  ctx.textAlign='left';
-}
-function synthSetFromEvent(e){
-  const canvas=document.getElementById('synthCanvas');
-  const rect=canvas.getBoundingClientRect();
-  const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
-  const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
-  const {f1,f2}=synthCoordsToFormants(x,y,rect.width,rect.height);
-  synthF1=f1; synthF2=f2;
-  retuneSynth(); drawSynthPad();
-}
-(function initSynth(){
-  const canvas=document.getElementById('synthCanvas');
-  if(!canvas) return;
-  let dragging=false;
-  canvas.addEventListener('pointerdown',e=>{dragging=true;startSynth();synthSetFromEvent(e);canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener('pointermove',e=>{if(dragging)synthSetFromEvent(e);});
-  const end=()=>{dragging=false;stopSynth();};
-  canvas.addEventListener('pointerup',end);
-  canvas.addEventListener('pointercancel',end);
-  canvas.addEventListener('pointerleave',()=>{if(dragging)end();});
-  const slider=document.getElementById('synthPitch');
-  slider.addEventListener('input',e=>{
-    const hz=parseFloat(e.target.value);
-    document.getElementById('synthPitchLabel').textContent=`${Math.round(hz)} Hz · ${freqToNote(hz).note}`;
-    if(synthNodes) synthNodes.osc.frequency.setTargetAtTime(hz,synthCtx.currentTime,0.02);
-  });
-  // Preset buttons — one per vowel
-  const wrap=document.getElementById('synthPresets');
-  VOWELS.forEach(v=>{
-    const b=document.createElement('button');
-    b.className='ex-btn'; b.style.flex='none'; b.style.padding='5px 10px'; b.textContent=v.label;
-    b.addEventListener('click',()=>{
-      synthF1=v.f1; synthF2=v.f2;
-      startSynth(); retuneSynth(); drawSynthPad();
-      setTimeout(stopSynth,700);
-    });
-    wrap.appendChild(b);
-  });
-})();
 
 // ── Pink Trombone (iframe, original by Neil Thapen, MIT) ───────────────────
 // Loaded from the sibling 'pinktrombone/' folder each time the tab opens, and
